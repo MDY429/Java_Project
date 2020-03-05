@@ -1,5 +1,15 @@
 # Meeting Log
-
+**Date:** 2020/03/05  
+**Attendees:** All  
+**Location:** CS Building - Downstair Lab.  
+**Time:** 15:00 - 16:30  
+**Topic:**  
+1. GUI design  
+2. GUI action listener  
+3. The Data package design  
+4. Should create a data manager to handle database and server.  
+5. The database table design.  
+  
 **Date:** 2020/02/28  
 **Attendees:** Ta-Yu Mar, Mingxi Li, Yongnan Zhang, Yu Cheng  
 **Location:** European Research Institute G53  
