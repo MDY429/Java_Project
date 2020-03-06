@@ -20,13 +20,13 @@ public class ChatServer {
     
     // Server port number.
     private int serverPort;
-    // User manager to handle user's infor.
+    // User manager to handle user's information.
     private final UserManager userManager = new UserManager();
-    // Use map to correspond the socketchannel to data handler.
+    // Use map to correspond the SocketChannel to data handler.
     private Map<SocketChannel, DataHandler> mapSocketToHandlers = new HashMap<SocketChannel, DataHandler>();
 
     /**
-     * Consturctor for CharServer.
+     * Constructor for CharServer.
      */
     public ChatServer() {
         this.serverPort = 50000;
@@ -82,7 +82,7 @@ public class ChatServer {
 
                             // Find the correspond handler.
                             DataHandler handler = mapSocketToHandlers.get(client);
-                            ArrayList<DataPackage> dataPkgs = handler.recieveHandle();
+                            ArrayList<DataPackage> dataPkgs = handler.receiveHandle();
 
                             if (dataPkgs == null) {
                                 System.out.println("No data, close connection: " + client.toString());

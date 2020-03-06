@@ -1,5 +1,5 @@
 /**
- * The user class define the user's relative inforation.
+ * The user class define the user's relative information.
  * @author Ta-Yu Mar
  * @version 0.1 beta 2020-03-05
  */
@@ -10,14 +10,14 @@ public class User {
     private DataHandler dataHandler = null;
 
     /**
-     * Contructor for user.
+     * Constructor for user.
      */
     public User() {
         
     }
 
     /**
-     * Contructor for user.
+     * Constructor for user.
      * @param username
      * @param password
      */
@@ -27,7 +27,7 @@ public class User {
     }
 
     /**
-     * Get the correspondinf data handler.
+     * Get the corresponding data handler.
      * @return DataHandler
      */
     public DataHandler getDataHandler(){

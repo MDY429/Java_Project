@@ -8,7 +8,7 @@ public class UserManager {
     /**
      * Server handle user sign up new account.
      * @param pkg The input of data package.
-     * @param dataHandler The input of correspondinf datahandler.
+     * @param dataHandler The input of corresponding data handler.
      */
     public void userSignUp(DataPackage pkg, DataHandler dataHandler){
         boolean checkdatabase = true;
@@ -22,10 +22,11 @@ public class UserManager {
 
             pkg.flag = 1;
             
-            // Send back to Client and return scuess.
+            // Send back to Client and return success.
             user.getDataHandler().sendDataHandle(pkg.toString());
         }
         else {
+            // Send back sign up fail.
             System.out.println("User sign up Error!!!");
             pkg.flag = 0;
             

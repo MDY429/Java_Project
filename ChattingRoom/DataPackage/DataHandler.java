@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 /**
  * This class would help server to process the data transmission.
- * This DataHandler would send/recieve to/from client and server.
+ * This DataHandler would send/receive to/from client and server.
  * @author Ta-Yu Mar
  * @version 0.1 beta 2020-03-05 
  */
@@ -16,18 +16,18 @@ public class DataHandler {
 
     private SocketChannel socketChannel = null;
     private ByteBuffer sendBuffer;
-    private ByteBuffer recieveBuffer;
+    private ByteBuffer receiveBuffer;
 
     // Create a package header.
     public static final short PACKAGE_HEADER = (short)0xffff;
     public static final int HEADER_LENGTH = 4;
 
     /**
-     * Consturctor for DataHandler
+     * Constructor for DataHandler
      */
     public DataHandler() {
         this.sendBuffer = ByteBuffer.allocate(0x4000);
-        this.recieveBuffer = ByteBuffer.allocate(0x4000);
+        this.receiveBuffer = ByteBuffer.allocate(0x4000);
     }
 
     /**
@@ -46,7 +46,7 @@ public class DataHandler {
             socketChannel.connect(new InetSocketAddress(host, port));
             while (!socketChannel.finishConnect()) {}
 
-            // Disable Nagle¡¦s Algorithm to send tcp data immediately
+            // Disable Nagle's Algorithm to send tcp data immediately
             socketChannel.socket().setTcpNoDelay(true);
         } catch (IOException e) {
             System.out.println("Exception when connecting to server: " + e);
@@ -73,7 +73,7 @@ public class DataHandler {
         try {
             socketChannel.write(sendBuffer);
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             System.out.println("Exception when sending data: " + e);
             return false;
         }
@@ -82,16 +82,16 @@ public class DataHandler {
     }
 
     /**
-     * To handle the recieved data.
+     * To handle the received data.
      * @return Arraylist of DataPackage.
      */
-    public ArrayList<DataPackage> recieveHandle() {
+    public ArrayList<DataPackage> receiveHandle() {
         ArrayList<DataPackage> pkgs = new ArrayList<>(4);
         int numByteRead = 0;
 
         try {
             // The number of bytes read.
-            numByteRead = socketChannel.read(recieveBuffer);
+            numByteRead = socketChannel.read(receiveBuffer);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -109,37 +109,37 @@ public class DataHandler {
         }
 
         // The limit is set to the current position and then the position is set to zero.
-        recieveBuffer.flip();
+        receiveBuffer.flip();
 
-        // Checking wether it had receieved the whole package.
-        while(recieveBuffer.remaining() >= HEADER_LENGTH) {
-            recieveBuffer.mark();
-            short header = recieveBuffer.getShort();
-            short length = recieveBuffer.getShort();
+        // Checking wether it had received the whole package.
+        while(receiveBuffer.remaining() >= HEADER_LENGTH) {
+            receiveBuffer.mark();
+            short header = receiveBuffer.getShort();
+            short length = receiveBuffer.getShort();
             System.out.println("header: " + header + ", length: "+ length);
             if(header == (short) 0xffff) {
-                if(recieveBuffer.position() + length > recieveBuffer.limit()) {
+                if(receiveBuffer.position() + length > receiveBuffer.limit()) {
                     // Only get partial package data.
-                    recieveBuffer.reset();
+                    receiveBuffer.reset();
                     break;
                 }
                 else {
                     // Separate package data to header and body, read data start at 4 to (4+length-1).
-                    ByteBuffer partialBuf = getPartialBuffer(recieveBuffer, recieveBuffer.position(), length);
+                    ByteBuffer partialBuf = getPartialBuffer(receiveBuffer, receiveBuffer.position(), length);
                     DataPackage pkg = handlePackage(partialBuf);
                     if(pkg != null) {
                         pkgs.add(pkg);
                     }
-                    recieveBuffer.position(recieveBuffer.position() + length);
+                    receiveBuffer.position(receiveBuffer.position() + length);
                 }
             }
             else {
                 // Get bad package data.
-                recieveBuffer.clear();
+                receiveBuffer.clear();
                 break;
             }
         }
-        recieveBuffer.compact();
+        receiveBuffer.compact();
 
         return pkgs;
     }
@@ -153,7 +153,7 @@ public class DataHandler {
     }
 
     /**
-     * Checking the SoketChannel is connected or not.
+     * Checking the SocketChannel is connected or not.
      * @return boolean
      */
     public boolean isConnected() {
@@ -173,8 +173,8 @@ public class DataHandler {
         byteBuffer.position(pos);
         
         // New buffer will start at this buffer's current position.
-        ByteBuffer sliceBuf = recieveBuffer.slice();
-        recieveBuffer.position(orgPos);
+        ByteBuffer sliceBuf = receiveBuffer.slice();
+        receiveBuffer.position(orgPos);
         sliceBuf.limit(length);
         return sliceBuf.asReadOnlyBuffer();
     }
@@ -192,7 +192,7 @@ public class DataHandler {
     }
 
     /**
-     * Conver the byteBuffer to string.
+     * Convert the byteBuffer to string.
      * @param byteBuffer The input byteBuffer.
      * @return String.
      */
@@ -202,7 +202,7 @@ public class DataHandler {
         try {
             return decoder.decode(byteBuffer).toString();
         } catch (Exception e) {
-            System.out.println("Excpetion for decoding message buffer failed: " + e);
+            System.out.println("Exception for decoding message buffer failed: " + e);
             return "";
         }
     }

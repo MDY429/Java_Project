@@ -41,16 +41,16 @@ public class ChatClient extends Observable {
     }
 
 	/**
-	 * The Client recieves the data from server.
+	 * The Client receives the data from server.
 	 * @return The integer of corresponding status.
 	 */
-	private int recieveFromServer() {
+	private int receiveFromServer() {
 		if (!user.getDataHandler().isConnected()) {
 		// TODO: try to reconnect
 		return -1;
 		}
 
-		List<DataPackage> packages = user.getDataHandler().recieveHandle();
+		List<DataPackage> packages = user.getDataHandler().receiveHandle();
 		if (packages != null) {
 			// System.out.printf("got %d packages\n", packages.size());
 			for (DataPackage pkg : packages) {
@@ -104,7 +104,7 @@ public class ChatClient extends Observable {
 			testSendData();
 			i++;
 			// ---------------------
-			int num = recieveFromServer();
+			int num = receiveFromServer();
 			System.out.println(num+","+i);
             if (num <= 0) {
                 // If no data or cannot connect server. Execute the sleep.
