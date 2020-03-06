@@ -1,21 +1,40 @@
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
+/**
+ * The ChatServer, here we use the non-blocking I/O way to implement the server.
+ * With non-blocking I/O, we can use a single thread to handle multiple concurrent connections.
+ * @author Ta-Yu Mar
+ * @version 0.1 beta 2020-03-05 
+ */
 public class ChatServer {
+    
+    // Server port number.
     private int serverPort;
+    // User manager to handle user's infor.
+    private final UserManager userManager = new UserManager();
+    // Use map to correspond the socketchannel to data handler.
+    private Map<SocketChannel, DataHandler> mapSocketToHandlers = new HashMap<SocketChannel, DataHandler>();
 
+    /**
+     * Consturctor for CharServer.
+     */
     public ChatServer() {
         this.serverPort = 50000;
     }
 
+    /**
+     * Server Start.
+     */
     public void serverRun() {
         try {
             Selector selector = Selector.open();
@@ -26,6 +45,7 @@ public class ChatServer {
             InetSocketAddress hostAddress = new InetSocketAddress(this.serverPort);
             serverChannel.socket().bind(hostAddress);
 
+            // Server socket channel is ready to accept a new connection from a client.
             serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
             while (true) {
@@ -33,49 +53,60 @@ public class ChatServer {
                 if (count > 0) {
                     // process selected key.
                     Set<SelectionKey> keys = selector.selectedKeys();
-                    // System.out.println(keys);
                     for (SelectionKey key : keys) {
-                        // client requires a connection.
+                        // Whether this key's channel is ready to accept a new socket connection.
                         if (key.isAcceptable()) {
-                            // ServerSocketChannel server = (ServerSocketChannel) key.channel();
-                            SocketChannel server = (SocketChannel) serverChannel.accept();
-                            if (server == null) {
-                                System.out.println("Got a new connection, but sc is null");
+                            // Get client socket channel
+                            SocketChannel client = (SocketChannel) serverChannel.accept();
+                            if (client == null) {
+                                System.out.println("Got a new connection, but server is null");
                                 continue;
                             }
                             
                             // None Blocking IO
-                            server.configureBlocking(false);
-                            server.register(key.selector(), SelectionKey.OP_READ);
+                            client.configureBlocking(false);
+                            // Record it for read operations
+                            client.register(key.selector(), SelectionKey.OP_READ);
+
+                            // Make the handler to process the data.
+                            DataHandler handler = new DataHandler();
+                            handler.setSocketChannel(client);
+                            mapSocketToHandlers.put(client, handler);
                         }
 
-                        // server is ready to read data from client.
+                        // Whether this key's channel is ready for reading.
                         else if (key.isReadable()) {
 
-                            SocketChannel channel = (SocketChannel) key.channel();
-                            ByteBuffer buffer = ByteBuffer.allocate(1024);
-                            int numRead = -1;
-                            numRead = channel.read(buffer);
-                            System.out.println(numRead);
-                            if (numRead == -1) {
-                                Socket socket = channel.socket();
-                                SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-                                System.out.println("Connection closed by client: " + remoteAddr);
-                                channel.close();
+                            // Returns the channel for which this key was created.
+                            SocketChannel client = (SocketChannel) key.channel();
+
+                            // Find the correspond handler.
+                            DataHandler handler = mapSocketToHandlers.get(client);
+                            ArrayList<DataPackage> dataPkgs = handler.recieveHandle();
+
+                            if (dataPkgs == null) {
+                                System.out.println("No data, close connection: " + client.toString());
                                 key.cancel();
-                                return;
-                            }
-                            
-                            byte[] data = new byte[numRead];
-                            System.arraycopy(buffer.array(), 0, data, 0, numRead);
-                            System.out.println("Got: " + new String(data));
-                            
-                            
+
+                                // Delete the handler in the map
+                                mapSocketToHandlers.remove(client);
+
+                                // Close the socket.
+                                Socket s = client.socket();
+                                try {
+                                    s.close();
+                                } catch( IOException e ) {
+                                    System.err.println("Error closing socket " + s + ": " + e );
+                                }
+                            } else {
+                                // Process the data package.
+                                dataPackageHandler(dataPkgs, handler);
+                            }                            
                         }
                         keys.clear();
                     }
                 } else {
-                    /* sleep a while */
+                    // sleep a while.
                     try { Thread.sleep(2); } catch (Exception e) {};
                 }
             }
@@ -86,6 +117,30 @@ public class ChatServer {
         }
     }
 
+    /**
+     * Process the datapackage and handle it to call the corresponding method.
+     * @param dataPkgs The DataPackage.
+     * @param handler The DataHandler.
+     */
+    public void dataPackageHandler(ArrayList<DataPackage> dataPkgs, DataHandler handler){
+        for (DataPackage pkg: dataPkgs) {
+            System.out.println("[dataPackageHandler]Process pkg: " + pkg.toString());
+            switch (pkg.type) {
+                case 0:
+                    break;
+                case 1:
+                    System.out.println("signUp:" + pkg.type);
+                    userManager.userSignUp(pkg, handler);
+                    break;
+                
+                default:
+                    System.err.println("Unknown package type: " + pkg.type + ", content: " + pkg.toString());
+                    break;
+            }
+        }
+    }
+
+    
     public static void main(String[] args) {
         ChatServer a = new ChatServer();
         a.serverRun();

@@ -2,6 +2,12 @@ import com.alibaba.fastjson.JSON;
 
 import java.io.Serializable;
 
+/**
+ * The DataPackage include the all information into a package.
+ * It will be tranfered between server and client.
+ * @author Ta-Yu Mar
+ * @version 0.1 beta 2020-03-05
+ */
 public class DataPackage implements Serializable {
 
     /**
@@ -9,23 +15,42 @@ public class DataPackage implements Serializable {
      */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The Package Type List
+     * 0: Sign In 
+     * 1: Sign Up
+     */
     public int type = 0;
-    public int flag = 0;
-    public String str = "AAAAA";
 
-    public DataPackage(){
+    // Check the transmission status is success or failed.
+    public int flag = 0;
+
+    // User infomation.
+    public String username = "default";
+    public String userpw = "";
+    public String message = "";
+
+    /**
+     * Consturctor for data package.
+     */
+    public DataPackage() {
 
     }
-    // public String toString(){
-    //     return str;
-    // }
 
+    /**
+     * Via Json jar to transfer the package information to string.
+     */
     @Override
     public String toString() {
         Object obj = JSON.toJSON(this);
         return obj.toString();
     }
 
+    /**
+     * Via Json jar to build a package.
+     * @param pkgString The input package information.
+     * @return DataPackage
+     */
     public static DataPackage fromString(String pkgString) {
         return JSON.parseObject(pkgString, DataPackage.class);
     }
