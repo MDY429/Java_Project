@@ -11,6 +11,9 @@ public class ChatClient extends Observable {
 	// Create a user type to handle the client's request.
 	User user = new User();
 	DataHandler dataHandler = null;
+	private String hostIP;
+	private static final int MAX_TRY_CONNECT = 20;
+	private static int tryConnect = 0;
 
 	// FOR TESTING !!!!!!
 	public void testSendData() {
@@ -46,12 +49,16 @@ public class ChatClient extends Observable {
 	 */
 	private int receiveFromServer() {
 		if (!user.getDataHandler().isConnected()) {
-		// TODO: try to reconnect
-		return -1;
+			// Try to reconnect the server.
+			userConnectToServer(hostIP, 50000);
+			System.out.println("Cannot Connect Server");
+			return -2;
 		}
 
 		List<DataPackage> packages = user.getDataHandler().receiveHandle();
 		if (packages != null) {
+			// Receieve from server, set tryConnect to 0.
+			tryConnect = 0;
 			// System.out.printf("got %d packages\n", packages.size());
 			for (DataPackage pkg : packages) {
 				System.out.println("Process pkg: " + pkg.toString());
@@ -67,7 +74,8 @@ public class ChatClient extends Observable {
 			}
 		} else {
 			System.out.println("got null packages, connection may have been broken");
-
+			// Try to reconnect the server.
+			userConnectToServer(hostIP, 50000);
 			return -1;
 		}
 		return packages.size();
@@ -87,14 +95,24 @@ public class ChatClient extends Observable {
 	}
 
 	/**
+	 * Set hostIP address.
+	 * @param hostIP The input of IP address.
+	 */
+	private void setHostIP(String hostIP){
+		this.hostIP = hostIP;
+	}
+
+	/**
 	 * Start to run.
 	 * @param host The host IP address.
 	 * @param port The corresponding Server port.
 	 */
 	public void runMain(String host, int port) {
 
+		setHostIP(host);
+
 		// Connect to Server.
-		userConnectToServer(host, 50000);
+		userConnectToServer(hostIP, 50000);
 		
 		int i = 0; //TESTING
 		while (true) {
@@ -107,6 +125,11 @@ public class ChatClient extends Observable {
 			int num = receiveFromServer();
 			System.out.println(num+","+i);
             if (num <= 0) {
+				tryConnect++;
+				if(tryConnect > MAX_TRY_CONNECT){
+					System.err.println("Cannot connect server, close the application.");
+					break;
+				}
                 // If no data or cannot connect server. Execute the sleep.
                 try {
                     Thread.sleep(20);
