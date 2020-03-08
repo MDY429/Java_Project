@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -32,18 +33,17 @@ public class DataHandler {
 
     /**
      * When client comes in, connect them to server.
-     * @param host The host IP address.
      * @param port The connection port number.
      * @return boolean
      */
-    public boolean connectToServer(String host, int port) {
+    public boolean connectToServer(int port) {
         try {
             socketChannel = SocketChannel.open();
             // Set non-blocking mode
             socketChannel.configureBlocking(false);
 
             // Wait to finish the connection
-            socketChannel.connect(new InetSocketAddress(host, port));
+            socketChannel.connect(new InetSocketAddress(InetAddress.getByName("localhost"), port));
             while (!socketChannel.finishConnect()) {}
 
             // Disable Nagle's Algorithm to send tcp data immediately
@@ -83,7 +83,7 @@ public class DataHandler {
 
     /**
      * To handle the received data.
-     * @return Arraylist of DataPackage.
+     * @return ArrayList of DataPackage.
      */
     public ArrayList<DataPackage> receiveHandle() {
         ArrayList<DataPackage> pkgs = new ArrayList<>(4);
@@ -93,7 +93,8 @@ public class DataHandler {
             // The number of bytes read.
             numByteRead = socketChannel.read(receiveBuffer);
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
+            System.out.println("Exception for receiving data: " + e);
             return null;
         }
 

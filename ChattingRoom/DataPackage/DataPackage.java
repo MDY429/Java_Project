@@ -20,15 +20,20 @@ public class DataPackage implements Serializable {
      * 0: Sign In 
      * 1: Sign Up
      */
-    public int type = 0;
+    public int type;
 
     // Check the transmission status is success or failed.
-    public int flag = 0;
+    public int flag;
 
     // User information.
-    public String username = "default";
-    public String userpw = "";
-    public String message = "";
+    public int userId;
+    public String userName;
+    public String userPw;
+    
+    // Send Msg information.
+    public int receiveUserId;
+    public String receiveUserName;
+    public String message;
 
     /**
      * Constructor for data package.

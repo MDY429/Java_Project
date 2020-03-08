@@ -133,10 +133,20 @@ public class ChatServer {
             System.out.println("[dataPackageHandler]Process pkg: " + pkg.toString());
             switch (pkg.type) {
                 case 0:
+                    System.out.println("[Server]signIn:" + pkg.type);
+                    userManager.userSignIn(pkg, handler);
                     break;
                 case 1:
-                    System.out.println("signUp:" + pkg.type);
+                    System.out.println("[Server]signUp:" + pkg.type);
                     userManager.userSignUp(pkg, handler);
+                    break;
+
+                case 2:
+                    System.out.println("[Server]Chat:" + pkg.type);
+                    userManager.sendPrivateChat(pkg, handler);
+                    break;
+                case 3:
+                    System.out.println("[Server]");
                     break;
                 
                 default:
