@@ -6,6 +6,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -53,57 +54,62 @@ public class ChatServer {
                 if (count > 0) {
                     // process selected key.
                     Set<SelectionKey> keys = selector.selectedKeys();
-                    for (SelectionKey key : keys) {
-                        // Whether this key's channel is ready to accept a new socket connection.
-                        if (key.isAcceptable()) {
-                            // Get client socket channel
-                            SocketChannel client = (SocketChannel) serverChannel.accept();
-                            if (client == null) {
-                                System.out.println("Got a new connection, but server is null");
-                                continue;
-                            }
-                            
-                            // None Blocking IO
-                            client.configureBlocking(false);
-                            // Record it for read operations
-                            client.register(key.selector(), SelectionKey.OP_READ);
-
-                            // Make the handler to process the data.
-                            DataHandler handler = new DataHandler();
-                            handler.setSocketChannel(client);
-                            mapSocketToHandlers.put(client, handler);
-                        }
-
-                        // Whether this key's channel is ready for reading.
-                        else if (key.isReadable()) {
-
-                            // Returns the channel for which this key was created.
-                            SocketChannel client = (SocketChannel) key.channel();
-
-                            // Find the correspond handler.
-                            DataHandler handler = mapSocketToHandlers.get(client);
-                            ArrayList<DataPackage> dataPkgs = handler.receiveHandle();
-
-                            if (dataPkgs == null) {
-                                System.out.println("No data, close connection: " + client.toString());
-                                key.cancel();
-
-                                // Delete the handler in the map
-                                mapSocketToHandlers.remove(client);
-
-                                // Close the socket.
-                                Socket s = client.socket();
-                                try {
-                                    s.close();
-                                } catch( IOException e ) {
-                                    System.err.println("Error closing socket " + s + ": " + e );
+                    try {
+                        for (SelectionKey key : keys) {
+                            // Whether this key's channel is ready to accept a new socket connection.
+                            if (key.isAcceptable()) {
+                                // Get client socket channel
+                                SocketChannel client = (SocketChannel) serverChannel.accept();
+                                if (client == null) {
+                                    System.out.println("Got a new connection, but server is null");
+                                    continue;
                                 }
-                            } else {
-                                // Process the data package.
-                                dataPackageHandler(dataPkgs, handler);
-                            }                            
+                                
+                                // None Blocking IO
+                                client.configureBlocking(false);
+                                // Record it for read operations
+                                client.register(key.selector(), SelectionKey.OP_READ);
+    
+                                // Make the handler to process the data.
+                                DataHandler handler = new DataHandler();
+                                handler.setSocketChannel(client);
+                                mapSocketToHandlers.put(client, handler);
+                            }
+    
+                            // Whether this key's channel is ready for reading.
+                            else if (key.isReadable()) {
+    
+                                // Returns the channel for which this key was created.
+                                SocketChannel client = (SocketChannel) key.channel();
+    
+                                // Find the correspond handler.
+                                DataHandler handler = mapSocketToHandlers.get(client);
+                                ArrayList<DataPackage> dataPkgs = handler.receiveHandle();
+    
+                                if (dataPkgs == null) {
+                                    System.out.println("No data, close connection: " + client.toString());
+                                    key.cancel();
+    
+                                    // Delete the handler in the map
+                                    mapSocketToHandlers.remove(client);
+    
+                                    // Close the socket.
+                                    Socket s = client.socket();
+                                    try {
+                                        s.close();
+                                    } catch( IOException e ) {
+                                        System.err.println("Error closing socket " + s + ": " + e );
+                                    }
+                                } else {
+                                    // Process the data package.
+                                    dataPackageHandler(dataPkgs, handler);
+                                }
+                            }
+                            keys.clear();
                         }
-                        keys.clear();
+                    } catch (ConcurrentModificationException e) {
+                        // Retrying selector keys after ConcurrentModificationException caught.
+                        continue;
                     }
                 } else {
                     // sleep a while.
