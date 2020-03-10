@@ -10,8 +10,9 @@
 	<classpathentry kind="src" path="Client"/>
 	<classpathentry kind="src" path="Server"/>
 	<classpathentry kind="src" path="DataPackage"/>
-	<classpathentry kind="lib" path="lib/fastjson-1.2.66.jar"/>
 	<classpathentry kind="src" path="GUI"/>
+	<classpathentry kind="src" path="Database"/>
+	<classpathentry kind="lib" path="lib/fastjson-1.2.66.jar"/>
 	<classpathentry kind="lib" path="lib/postgresql-42.2.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
