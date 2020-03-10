@@ -9,6 +9,9 @@ import java.util.Observable;
 public class ChatClient extends Observable {
 
 	// Create a user type to handle the client's request.
+
+
+
 	User user = new User();
 	DataHandler dataHandler = null;
 	private static final int PORT_NUMBER = 50000;
