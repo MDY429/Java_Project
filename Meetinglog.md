@@ -1,4 +1,14 @@
-# Meeting Log
+# Meeting Log  
+**Date:** 2020/03/10  
+**Attendees:** All  
+**Location:** The Teaching and Learning Building  
+**Time:** 10:00 - 12:30  
+**Topic:**  
+1. Merge Database code.  
+2. Verify the database.  
+3. Checking javafx feature.  
+4. Connect GUI and server before this Thursday.
+  
 **Date:** 2020/03/05  
 **Attendees:** All  
 **Location:** CS Building - Downstair Lab.  
