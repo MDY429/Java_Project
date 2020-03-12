@@ -73,12 +73,6 @@ public class UserManager {
             System.out.println("Create new table.");
         }
         if (!checkDatabase && db.add_users(pkg.userName, pkg.userPw, pkg.email)) {
-            // System.out.println("UserManager - signUp");
-            // Insert the user information.
-            // boolean addStatus = db.add_users(pkg.userName, pkg.userPw, pkg.email);
-            
-            // try { Thread.sleep(10000); } catch (Exception e) { }
-            System.out.println("123");
             pkg.flag = 1;
             
             dataHandler.sendDataHandle(pkg.toString());

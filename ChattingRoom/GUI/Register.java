@@ -135,6 +135,8 @@ public class Register extends Application {
 				System.out.println("Email: " + emailText.getText());
 				System.out.println("Press register submit");
 
+				// Before send to register, set booleanProperty be false.
+				booleanProperty.set(false);
 				// Send information to register a new account.
 				chatClient.sendSignUp(userNameText.getText(), passwordText.getText(), emailText.getText());
 				Thread thread = new Thread(new Runnable() {
@@ -162,7 +164,7 @@ public class Register extends Application {
 						};
 
 						while (tryError > 0) {
-							System.out.println(tryError);
+							// System.out.println(tryError);
 							if (booleanProperty.getValue()) {
 								break;
 							}
