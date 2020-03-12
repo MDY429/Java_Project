@@ -1,4 +1,8 @@
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -11,6 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 
 public class Register extends Application {
 
@@ -21,6 +26,16 @@ public class Register extends Application {
 	private Button submitButton, cancelButton;
 	private BorderPane pane;
 	private Scene scene;
+
+	Stage primaryStage;
+	ChatClient chatClient;
+	private BooleanProperty booleanProperty;
+
+	public Register(Stage primaryStage, ChatClient chatClient, BooleanProperty booleanProperty) {
+		this.primaryStage = primaryStage;
+		this.chatClient = chatClient;
+		this.booleanProperty = booleanProperty;
+	}
 
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -111,15 +126,69 @@ public class Register extends Application {
 		// action for submitButton
 		submitButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent e) {
-				//TODO Need check function and update
+				// TODO Need check function and update
 				System.out.println("Register succeed with the information bellow.");
-				System.out.println("First Name: "+firstNameText.getText());
-				System.out.println("Last Name: " +lastNameText.getText());
-				System.out.println("UserName: "+userNameText.getText());
-				System.out.println("password: "+passwordText.getText());
-				System.out.println("Email: "+emailText.getText());
-				popUpSignUI();
-				stage.hide();
+				System.out.println("First Name: " + firstNameText.getText());
+				System.out.println("Last Name: " + lastNameText.getText());
+				System.out.println("UserName: " + userNameText.getText());
+				System.out.println("password: " + passwordText.getText());
+				System.out.println("Email: " + emailText.getText());
+				System.out.println("Press register submit");
+
+				// Send information to register a new account.
+				chatClient.sendSignUp(userNameText.getText(), passwordText.getText(), emailText.getText());
+				Thread thread = new Thread(new Runnable() {
+				int tryError = 200;
+
+					@Override
+					public void run() {
+						Runnable registerProcess = new Runnable() {
+							@Override
+							public void run() {
+								tryError--;
+								if (tryError < 0) {
+									// TODO: show fail register window.
+									popUpSignUI();
+									stage.hide();
+									System.out.println("FAIL");
+								}
+								if (booleanProperty.getValue()) {
+									// TODO: show success window.
+									popUpSignUI();
+									stage.hide();
+									System.out.println("Register SUCCESS");
+								}
+							}
+						};
+
+						while (tryError > 0) {
+							System.out.println(tryError);
+							if (booleanProperty.getValue()) {
+								break;
+							}
+							try {
+								Thread.sleep(20);
+							} catch (InterruptedException ex) {
+
+							}
+												
+							Platform.runLater(registerProcess);
+						}						
+					}
+				});
+				// don't let thread prevent JVM shutdown
+				thread.setDaemon(true);
+				thread.start();
+			}
+		});
+
+		// Add change listener
+		booleanProperty.addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
+					Boolean newValue) {
+				// TODO Auto-generated method stub
+				System.out.println("changed " + oldValue + "->" + newValue);
 			}
 		});
 
@@ -153,15 +222,17 @@ public class Register extends Application {
 		stage.initStyle(StageStyle.DECORATED);
 		stage.show();
 
+		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent t) {
+				popUpSignUI();
+			}
+		});
+
 	}
 
 	private void popUpSignUI() {
-		Sign sign = new Sign();
-		try {
-			sign.start(new Stage());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		primaryStage.show();
 	}
 
 	public static void main(String[] args) {

@@ -1,4 +1,7 @@
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -14,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 
 public class Sign extends Application{
 	
@@ -26,6 +30,8 @@ public class Sign extends Application{
 	private Button registerButton, signInButton, forgetPasswordButton;
 	private BorderPane pane;
 	private Scene scene;
+	ChatClient chatClient = new ChatClient();
+	private BooleanProperty booleanProperty = new SimpleBooleanProperty(false);
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -81,13 +87,13 @@ public class Sign extends Application{
 
 		// button
 		registerButton = new Button();
-		registerButton.setText("REGISTGER");
+		registerButton.setText("REGISTER");
 		registerButton.setPrefHeight(30);
 		registerButton.setPrefWidth(150);
 		//action for register button
 		registerButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent e) {
-				popUpRegisterUI();
+				popUpRegisterUI(primaryStage, chatClient);
 				primaryStage.hide();
 			}
 		});
@@ -108,7 +114,7 @@ public class Sign extends Application{
 			}
 		});
 
-		forgetPasswordButton = new Button("FORGETPASSWORD");
+		forgetPasswordButton = new Button("FORGET PASSWORD");
 		forgetPasswordButton.setPrefHeight(30);
 		forgetPasswordButton.setPrefWidth(150);
 		//action for forget button
@@ -138,11 +144,47 @@ public class Sign extends Application{
 		primaryStage.setScene(scene);
 		primaryStage.initStyle(StageStyle.DECORATED);
 		primaryStage.show();
+
+		// Connect to Server.
+		chatClient.userConnectToServer(50000);
+		Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Runnable executeClient = new Runnable() {
+                    @Override
+                    public void run() {
+						// Get server feedback.
+						chatClient.runMain(booleanProperty);
+                    }
+                };
+
+                while (true) {
+                    try {
+						Thread.sleep(20);
+					}
+					catch (InterruptedException ex) {
+
+					}
+                    Platform.runLater(executeClient);
+                }
+            }
+
+        });
+        thread.setDaemon(true);
+		thread.start();
+		
+		// When User close the application.
+		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent t) {
+				Platform.exit();
+				System.exit(0);
+			}
+		});
 	}
 
-	private void popUpRegisterUI() {
-//		System.out.println("clicked");
-		Register register=new Register();
+	private void popUpRegisterUI(Stage primaryStage, ChatClient chatClient) {
+		Register register=new Register(primaryStage, chatClient, booleanProperty);
 		try {
 			register.start(new Stage());
 		} catch (Exception e) {
@@ -152,12 +194,6 @@ public class Sign extends Application{
 	
 	private void popUpClientUI() {
 		// TODO Auto-generated method stub
-		Client client=new Client();
-		try {
-			client.start(new Stage());
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
 		
 	}
 	

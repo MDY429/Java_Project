@@ -1,6 +1,8 @@
 import com.alibaba.fastjson.JSON;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The DataPackage include the all information into a package.
@@ -29,17 +31,39 @@ public class DataPackage implements Serializable {
     public int userId;
     public String userName;
     public String userPw;
+    public String email;
     
     // Send Msg information.
     public int receiveUserId;
     public String receiveUserName;
     public String message;
 
+    // Data
+    public List<OnlineUser> onlineUser= null;
+
+    // online User
+    public class OnlineUser {
+        public int userId;
+        public String userName;
+        public OnlineUser(int userId, String userName) {
+            this.userId = userId;
+            this.userName = userName;
+        }
+    }
+
     /**
      * Constructor for data package.
      */
     public DataPackage() {
 
+    }
+
+    public void addOnlineUserInfo(int userId, String userName) {
+        if(onlineUser == null) {
+            onlineUser = new ArrayList<>();
+        }
+        OnlineUser users = new OnlineUser(userId, userName);
+        onlineUser.add(users);
     }
 
     /**

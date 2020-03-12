@@ -146,7 +146,16 @@ public class ChatServer {
                     userManager.sendPrivateChat(pkg, handler);
                     break;
                 case 3:
-                    System.out.println("[Server]");
+                    System.out.println("[Server]IsRead" + pkg.type);
+                    userManager.sendReadStatus(pkg, handler);
+                    break;
+                case 4:
+                    System.out.println("[Server]Get online users" + pkg.type);
+                    userManager.getOnlineUsers(pkg, handler);
+                    break;
+                case 5:
+                    System.out.println("[Server]Notify other users." + pkg.type);
+                    userManager.notifyOthersUsers(pkg, handler);
                     break;
                 
                 default:
