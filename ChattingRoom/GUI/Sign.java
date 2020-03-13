@@ -31,7 +31,7 @@ public class Sign extends Application{
 	private BorderPane pane;
 	private Scene scene;
 	ChatClient chatClient = new ChatClient();
-	private BooleanProperty booleanProperty = new SimpleBooleanProperty(false);
+	private BooleanProperty booleanProperty = new SimpleBooleanProperty(true);
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -109,8 +109,49 @@ public class Sign extends Application{
 				System.out.println("Sign in succeed:");
 				System.out.println("Username: "+userNameText.getText());
 				System.out.println("Password: "+passwordText.getText());
-				popUpClientUI();
-				primaryStage.hide();
+
+				// Before send to SignIn, set booleanProperty be false.
+				booleanProperty.set(false);
+				// Send information to login account.
+				chatClient.sendSignIn(userNameText.getText(), passwordText.getText());
+				Thread thread = new Thread(new Runnable() {
+					int tryError = 15;
+	
+						@Override
+						public void run() {
+							Runnable signInProcess = new Runnable() {
+								@Override
+								public void run() {
+									tryError--;
+									if (tryError < 0) {
+										// TODO: show fail Sign In window.
+										// popUpClientUI();
+										// primaryStage.hide();
+										System.out.println("Login FAIL");
+									}
+									if (booleanProperty.getValue()) {
+										popUpClientUI();
+										primaryStage.hide();
+										System.out.println("Login SUCCESS");
+									}
+								}
+							};
+	
+							while (tryError > 0) {
+								if (booleanProperty.getValue()) {
+									break;
+								}
+								try {
+									Thread.sleep(300);
+								} catch (InterruptedException ex) {
+	
+								}
+								Platform.runLater(signInProcess);
+							}						
+						}
+					});
+					thread.setDaemon(true);
+					thread.start();
 			}
 		});
 
@@ -194,6 +235,12 @@ public class Sign extends Application{
 	
 	private void popUpClientUI() {
 		// TODO Auto-generated method stub
+		Client client = new Client();
+		try {
+			client.start(new Stage());
+		} catch (Exception e) {
+			//TODO: handle exception
+		}
 		
 	}
 	

@@ -1,8 +1,6 @@
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -140,7 +138,7 @@ public class Register extends Application {
 				// Send information to register a new account.
 				chatClient.sendSignUp(userNameText.getText(), passwordText.getText(), emailText.getText());
 				Thread thread = new Thread(new Runnable() {
-				int tryError = 200;
+				int tryError = 15;
 
 					@Override
 					public void run() {
@@ -169,7 +167,7 @@ public class Register extends Application {
 								break;
 							}
 							try {
-								Thread.sleep(20);
+								Thread.sleep(300);
 							} catch (InterruptedException ex) {
 
 							}
@@ -178,19 +176,8 @@ public class Register extends Application {
 						}						
 					}
 				});
-				// don't let thread prevent JVM shutdown
 				thread.setDaemon(true);
 				thread.start();
-			}
-		});
-
-		// Add change listener
-		booleanProperty.addListener(new ChangeListener<Boolean>() {
-			@Override
-			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
-					Boolean newValue) {
-				// TODO Auto-generated method stub
-				System.out.println("changed " + oldValue + "->" + newValue);
 			}
 		});
 

@@ -27,14 +27,13 @@ public class ChatClient {
 	 * @param userPw   User's password.
 	 */
 	public void sendSignUp(String userName, String userPw, String email) {
-		// TODO: Here shold be connected by application.
 		System.out.printf("Sign up for name:%s and pw:%s\n", userName, userPw);
 		DataPackage pkg = new DataPackage();
 		pkg.type = 1;
 		pkg.userName = userName;
 		pkg.userPw = userPw;
 		pkg.email = email;
-        user.sendDataPackage(pkg);
+		user.sendDataPackage(pkg);
 	}
 
 	/**
@@ -44,7 +43,30 @@ public class ChatClient {
 	 */
 	public void registerResult(DataPackage pkg, BooleanProperty booleanProperty) {
 		// Use BooleanProperty to do the broadcast.
-		if(pkg.flag ==1) {
+		if(pkg.flag == 1) {
+			booleanProperty.set(true);
+		}
+		else {
+			booleanProperty.set(false);
+		}
+	}
+
+	/**
+	 * Client enter userName and password to login account.
+	 * @param userName	The input of userName.
+	 * @param userPw	The input of user password.
+	 */
+	public void sendSignIn(String userName, String userPw) {
+		System.out.printf("Sign In for name:%s and pw:%s\n", userName, userPw);
+		DataPackage pkg = new DataPackage();
+		pkg.type = 0;
+		pkg.userName = userName;
+		pkg.userPw = userPw;
+		user.sendDataPackage(pkg);
+	}
+
+	public void signInResult(DataPackage pkg, BooleanProperty booleanProperty) {
+		if(pkg.flag == 1) {
 			booleanProperty.set(true);
 		}
 		else {
@@ -124,6 +146,7 @@ public class ChatClient {
 				switch (pkg.type) {
 					case 0:
 						System.out.println("[" + pkg.userName + "]: SIGN IN");
+						signInResult(pkg, booleanProperty);
 						break;
 					case 1:
 						System.out.println("[" + pkg.userName + "] SIGN UP new account: " + pkg.toString());
@@ -177,26 +200,14 @@ public class ChatClient {
 	 * @param booleanProperty The input of BooleanProperty.
 	 */
 	public void runMain(BooleanProperty booleanProperty) {
-
-		// Connect to Server.
-		// userConnectToServer(PORT_NUMBER);
-		
-		// while (true) {
-			int num = receiveFromServer(booleanProperty);
-            if (num <= 0) {
-				tryConnect++;
-				if(tryConnect > MAX_TRY_CONNECT){
-					System.err.println("Cannot connect server, close the application.");
-					System.exit(0);
-				}
-                // If no data or cannot connect server. Execute the sleep.
-                // try {
-                //     Thread.sleep(20);
-                // } catch (Exception e) {
-                //     System.out.println("Exception for waking up from sleep unexpectedly: " + e.toString());
-                // }
-            }
-        // }
+		int num = receiveFromServer(booleanProperty);
+		if (num <= 0) {
+			tryConnect++;
+			if(tryConnect > MAX_TRY_CONNECT){
+				System.err.println("Cannot connect server, close the application.");
+				System.exit(0);
+			}
+		}
     }
 
 	// public static void main(String[] args) {

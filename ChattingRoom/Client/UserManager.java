@@ -23,15 +23,19 @@ public class UserManager {
      * @param dataHandler The input of corresponding data handler.
      */
     public void userSignIn(DataPackage pkg, DataHandler dataHandler){
-        boolean checkdatabase = true;
-        if(db.add_Table()){
-            //System.out.println("SSSSSSSSSSSSSSSSSSS");
+        boolean checkDatabase = db.add_Table();
+        if(checkDatabase){
+            System.out.println("Create new table.");
         }
-        // TODO: Here will connect Database and check other details.
-        if(checkdatabase){
-            System.out.println("UserManager - signIn");
-
-            int id = 1; // TODO: This value should get from Database.
+        if(!checkDatabase){
+            int id = db.search_user(pkg.userName, pkg.userPw);
+            System.out.println("id:----"+id);
+            if(id <= 0) {
+                System.out.println("Get User information fail.");
+                pkg.flag = 0;
+                dataHandler.sendDataHandle(pkg.toString());
+                return;
+            }
 
             User user = new User(id, pkg.userName);
             user.setPassword(pkg.userPw);
