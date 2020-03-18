@@ -10,6 +10,7 @@ public class UserManager {
 
     // Record online users.
     Map<Integer, User> onlineUsers = new HashMap<>();
+    Map<DataHandler, User> userHandler = new HashMap<>();
 
     DatabaseManager db;
     public UserManager(){
@@ -47,6 +48,7 @@ public class UserManager {
             user.setUserStatus(User.UserStatus.ONLINE);
 
             onlineUsers.put(user.userId, user);
+            userHandler.put(dataHandler, user);
 
             pkg.flag = 1;
             pkg.userId = user.userId;
@@ -76,7 +78,7 @@ public class UserManager {
         if(checkDatabase){
             System.out.println("Create new table.");
         }
-        if (!checkDatabase && db.add_users(pkg.userName, pkg.userPw, pkg.email)) {
+        if(!checkDatabase && db.add_users(pkg.userName, pkg.userPw, pkg.email)) {
             pkg.flag = 1;
             
             dataHandler.sendDataHandle(pkg.toString());
@@ -146,6 +148,20 @@ public class UserManager {
         });
 
         dataHandler.sendDataHandle(getUsers.toString());
+    }
+
+    /**
+     * Server handle the user disconnect and notify other users.
+     * @param dataHandler The input of corresponding data handler.
+     */
+    public void userDisconnect(DataHandler dataHandler) {
+        User user = userHandler.get(dataHandler);
+        if(user != null) {
+            user.setUserStatus(User.UserStatus.OFFLINE);
+            onlineUsers.remove(user.userId);
+            userHandler.remove(dataHandler);
+        }
+        notifyOthersUsers(null, dataHandler);
     }
 
     /**

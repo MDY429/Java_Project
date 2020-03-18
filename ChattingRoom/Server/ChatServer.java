@@ -92,6 +92,9 @@ public class ChatServer {
     
                                     // Delete the handler in the map
                                     mapSocketToHandlers.remove(client);
+
+                                    // Client disconnect.
+                                    userManager.userDisconnect(handler);
     
                                     // Close the socket.
                                     Socket s = client.socket();
