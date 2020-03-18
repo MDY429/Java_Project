@@ -13,16 +13,20 @@ import java.util.Set;
 
 /**
  * The ChatServer, here we use the non-blocking I/O way to implement the server.
- * With non-blocking I/O, we can use a single thread to handle multiple concurrent connections.
+ * With non-blocking I/O, we can use a single thread to handle multiple
+ * concurrent connections.
+ * 
  * @author Ta-Yu Mar
- * @version 0.1 beta 2020-03-05 
+ * @version 0.2 beta 2020-03-18
  */
 public class ChatServer {
     
     // Server port number.
     private int serverPort;
+
     // User manager to handle user's information.
     private final UserManager userManager = new UserManager();
+
     // Use map to correspond the SocketChannel to data handler.
     private Map<SocketChannel, DataHandler> mapSocketToHandlers = new HashMap<SocketChannel, DataHandler>();
 
@@ -37,6 +41,7 @@ public class ChatServer {
      * Server Start.
      */
     public void serverRun() {
+        
         try {
             Selector selector = Selector.open();
 
@@ -127,11 +132,19 @@ public class ChatServer {
     }
 
     /**
-     * Process the datapackage and handle it to call the corresponding method.
+     * Process the data package and handle it to call the corresponding method.
+     * 0. Sign In
+     * 1. Sign Up
+     * 2. Chat
+     * 3. --
+     * 4. Get online users
+     * 5. Notify online users.
+     * 
      * @param dataPkgs The DataPackage.
-     * @param handler The DataHandler.
+     * @param handler  The DataHandler.
      */
     public void dataPackageHandler(ArrayList<DataPackage> dataPkgs, DataHandler handler){
+
         for (DataPackage pkg: dataPkgs) {
             System.out.println("[dataPackageHandler]Process pkg: " + pkg.toString());
             switch (pkg.type) {
@@ -143,7 +156,6 @@ public class ChatServer {
                     System.out.println("[Server]signUp:" + pkg.type);
                     userManager.userSignUp(pkg, handler);
                     break;
-
                 case 2:
                     System.out.println("[Server]Chat:" + pkg.type);
                     userManager.sendPrivateChat(pkg, handler);

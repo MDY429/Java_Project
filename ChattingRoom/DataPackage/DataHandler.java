@@ -8,10 +8,11 @@ import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
 
 /**
- * This class would help server to process the data transmission.
- * This DataHandler would send/receive to/from client and server.
+ * This class would help server to process the data transmission. This
+ * DataHandler would send/receive to/from client and server.
+ * 
  * @author Ta-Yu Mar
- * @version 0.1 beta 2020-03-05 
+ * @version 0.2 beta 2020-03-18
  */
 public class DataHandler {
 
@@ -33,12 +34,14 @@ public class DataHandler {
 
     /**
      * When client comes in, connect them to server.
+     * 
      * @param port The connection port number.
      * @return boolean
      */
     public boolean connectToServer(int port) {
         try {
             socketChannel = SocketChannel.open();
+
             // Set non-blocking mode
             socketChannel.configureBlocking(false);
 
@@ -56,7 +59,9 @@ public class DataHandler {
     }
 
     /**
-     * To handle the sending data and guarantee the sending data is correct by adding the header and length. 
+     * To handle the sending data and guarantee the sending data is correct by
+     * adding the header and length.
+     * 
      * @param msg The input of data.
      * @return boolean
      */
@@ -83,6 +88,7 @@ public class DataHandler {
 
     /**
      * To handle the received data.
+     * 
      * @return ArrayList of DataPackage.
      */
     public ArrayList<DataPackage> receiveHandle() {
@@ -147,6 +153,7 @@ public class DataHandler {
 
     /**
      * Set the corresponding SocketChannel.
+     * 
      * @param sc The input SocketChannel.
      */
     public void setSocketChannel(SocketChannel sc) {
@@ -155,6 +162,7 @@ public class DataHandler {
 
     /**
      * Checking the SocketChannel is connected or not.
+     * 
      * @return boolean
      */
     public boolean isConnected() {
@@ -163,9 +171,10 @@ public class DataHandler {
 
     /**
      * To separate the whole data to be partial from specific position and length.
+     * 
      * @param byteBuffer The input of whole data buffer.
-     * @param pos The input of specific position.
-     * @param length The input of specific length.
+     * @param pos        The input of specific position.
+     * @param length     The input of specific length.
      * @return The part of byteBuffer.
      */
     private ByteBuffer getPartialBuffer(ByteBuffer byteBuffer, int pos, int length) {
@@ -182,6 +191,7 @@ public class DataHandler {
 
     /**
      * Convert byteBuffer to data package.
+     * 
      * @param byteBuffer The input data buffer.
      * @return DataPackage
      */
@@ -194,6 +204,7 @@ public class DataHandler {
 
     /**
      * Convert the byteBuffer to string.
+     * 
      * @param byteBuffer The input byteBuffer.
      * @return String.
      */

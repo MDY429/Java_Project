@@ -9,8 +9,9 @@ import javafx.collections.ObservableList;
 
 /**
  * This is Client.
+ * 
  * @author Ta-Yu Mar
- * @version 0.1 beta 2020-03-05
+ * @version 0.2 beta 2020-03-18
  */
 public class ChatClient {
 
@@ -20,29 +21,35 @@ public class ChatClient {
 	// Store the online users.
 	List<User> onlineUsersList = new ArrayList<>();
 
+	// The data handler.
 	DataHandler dataHandler = null;
 
 	/**
-	 * Client ask for registering new account.
+	 * Client enter the information to register new account.
+	 * 
 	 * @param userName User's username
 	 * @param userPw   User's password.
 	 */
 	public void sendSignUp(String userName, String userPw, String email) {
-		System.out.printf("Sign up for name:%s and pw:%s\n", userName, userPw);
+
+		// Create a new package to pack the register information.
 		DataPackage pkg = new DataPackage();
 		pkg.type = 1;
 		pkg.userName = userName;
 		pkg.userPw = userPw;
 		pkg.email = email;
+
 		user.sendDataPackage(pkg);
 	}
 
 	/**
-	 * The result from database and broadcast to GUI.
-	 * @param pkg The input of data package
+	 * The result from database and Server and return to GUI.
+	 * 
+	 * @param pkg             The input of data package
 	 * @param IntegerProperty The input of IntegerProperty
 	 */
 	public void registerResult(DataPackage pkg, IntegerProperty integerProperty) {
+
 		// Use IntegerProperty to do the broadcast.
 		if(pkg.flag == 1) {
 			integerProperty.set(2);
@@ -54,22 +61,34 @@ public class ChatClient {
 
 	/**
 	 * Client enter userName and password to login account.
-	 * @param userName	The input of userName.
-	 * @param userPw	The input of user password.
+	 * 
+	 * @param userName The input of userName.
+	 * @param userPw   The input of user password.
 	 */
 	public void sendSignIn(String userName, String userPw) {
-		System.out.printf("Sign In for name:%s and pw:%s\n", userName, userPw);
+
+		// Create a new package to pack user login information.
 		DataPackage pkg = new DataPackage();
 		pkg.type = 0;
 		pkg.userName = userName;
 		pkg.userPw = userPw;
+
 		user.sendDataPackage(pkg);
 	}
 
+	/**
+	 * The sign in result, return back to gui.
+	 * 
+	 * @param pkg             The input of data package.
+	 * @param integerProperty The input of integerProperty.
+	 */
 	public void signInResult(DataPackage pkg, IntegerProperty integerProperty) {
+
+		// Update global variable.
 		user.userName = pkg.userName;
 		user.userId = pkg.userId;
 		
+		// Use IntegerProperty to do the broadcast.
 		if(pkg.flag == 1) {
 			integerProperty.set(2);
 		}
@@ -78,7 +97,16 @@ public class ChatClient {
 		}
 	}
 
+	/**
+	 * Client send the chatting information from gui to Server.
+	 * 
+	 * @param chatId   The userId you want to communicate.
+	 * @param chatName The userName you want to communicate.
+	 * @param msg      The chatting message.
+	 */
 	public void sendMsg(int chatId, String chatName, String msg) {
+
+		// Create a new package which pack the chatting information.
 		DataPackage chatPkg = new DataPackage();
 		chatPkg.type = 2;
 		chatPkg.userId = user.userId;
@@ -91,74 +119,111 @@ public class ChatClient {
 	}
 	
 	/**
+	 * The result of receiving message from other users, and whether you send msg
+	 * success.
 	 * 
-	 * @param pkg
+	 * @param pkg             The input of chatting data package.
+	 * @param stringProperty  The input of stringProperty.
+	 * @param integerProperty The input of integerProperty.
 	 */
 	public void receiveMsg(DataPackage pkg, StringProperty stringProperty, IntegerProperty integerProperty) {
+
 		if(pkg.flag == 1) {
+			// Send succeed.
 			System.out.println(pkg.userName + " SEND SUCCESS!!");
 		}
 		else if(pkg.flag == 2) {
+			// Send Failed.
 			System.out.println(pkg.userName + " SEND FAIL!!");
 			stringProperty.set(pkg.receiveUserName +": I am not ONLINE.\n");
 			stringProperty.set("");
 		}
-		else {			
+		else {
+			// Init integerProperty to -1.
 			integerProperty.set(-1);
+			// Set integerProperty to sending userId.
 			integerProperty.set(pkg.receiveUserId);
-			System.out.println(pkg.userName + " got " + pkg.receiveUserName +" :"+pkg.message);
+			// Set stringProperty to sending userName and their message.
 			stringProperty.set(pkg.receiveUserName +": "+ pkg.message + "\n");
+			// clean the stringProperty.
 			stringProperty.set("");
 		}
 	}
 
+	/**
+	 * After loggingIn, ask for newest online user list.
+	 */
 	public void findOnlineUsers() {
-		System.out.println("find online users");
+
+		// Create a new package to ask the newest online user list.
 		DataPackage pkg = new DataPackage();
 		pkg.type = 4;
 		user.sendDataPackage(pkg);
 	}
 
+	/**
+	 * Get online user list from server.
+	 * 
+	 * @param pkg The input of data package.
+	 */
 	public void getOnlineUsers(DataPackage pkg){
+
 		if(pkg.onlineUser == null) {
 			return;
 		}
+
+		// Init online user list.
 		onlineUsersList.clear();
 		for(DataPackage.OnlineUser user : pkg.onlineUser) {
 			onlineUsersList.add(new User(user.userId, user.userName));
 		}
 
-		// notify Others user i am online to re-flash the online status.
+		// Create a new package to notify others user to re-flash the online status.
 		DataPackage notifyOthers = new DataPackage();
 		notifyOthers.type = 5;
+
 		user.sendDataPackage(notifyOthers);
 	}
 
+	/**
+	 * Update online user list and broadcast to every online user.
+	 * 
+	 * @param pkg          The input of data package.
+	 * @param listProperty The input of listProperty.
+	 */
 	public void updateOnlineUsers(DataPackage pkg, ListProperty<User> listProperty) {
+
+		// Init online user list.
 		onlineUsersList.clear();
 		for(DataPackage.OnlineUser user : pkg.onlineUser) {
 			onlineUsersList.add(new User(user.userId, user.userName));
 		}
-
-		for(User s : onlineUsersList){
-			System.out.println(s.userId + ", " + s.userName);
-		}
 		
+		// Broadcast to every user.
 		ObservableList<User> observableList = FXCollections.observableList(onlineUsersList);
 		listProperty.setValue(observableList);
 	}
 
-	public List<User> getOnlineList() {
-		return onlineUsersList;
-	}
-
 	/**
 	 * The Client receives the data from server.
+	 * 0. Sign In
+     * 1. Sign Up
+     * 2. Chat
+     * 3. --
+     * 4. Get online users
+     * 5. Notify online users.
+	 * 
 	 * @param integerProperty The input of IntegerProperty
+	 * @param listProperty    The input of ListProperty
+	 * @param stringProperty  The input of StringProperty
 	 * @return The integer of corresponding status.
 	 */
-	private int receiveFromServer(IntegerProperty integerProperty, ListProperty<User> listProperty, StringProperty stringProperty) {
-		if (!user.getDataHandler().isConnected()) {
+	private int receiveFromServer(IntegerProperty integerProperty,
+								  ListProperty<User> listProperty,
+								  StringProperty stringProperty) {
+
+		// If cannot connect to server.
+		if(!user.getDataHandler().isConnected()) {
 			System.out.println("Cannot Connect Server");
 			return -2;
 		}
@@ -183,7 +248,6 @@ public class ChatClient {
 						receiveMsg(pkg, stringProperty, integerProperty);
 						break;
 					case 3:
-						System.out.println("Receive MSG");
 						break;
 					case 4:
 						System.out.println("get online users");
@@ -208,6 +272,7 @@ public class ChatClient {
 
 	/**
 	 * User provide the host IP address and specific port to connect to Server.
+	 * 
 	 * @param port The corresponding Server port.
 	 * @return boolean
 	 */
@@ -220,9 +285,10 @@ public class ChatClient {
 
 	/**
 	 * Start to run.
+	 * 
 	 * @param integerProperty The input of IntegerProperty.
-	 * @param listProperty The input of listProperty.
-	 * @param stringProperty The input of stringProperty.
+	 * @param listProperty    The input of listProperty.
+	 * @param stringProperty  The input of stringProperty.
 	 * @return The package size from server.
 	 */
 	public int runMain(IntegerProperty integerProperty, ListProperty<User> listProperty, StringProperty stringProperty) {

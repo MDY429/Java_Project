@@ -5,15 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The DataPackage include the all information into a package.
- * It will be transferred between server and client.
+ * The DataPackage include the all information into a package. It will be
+ * transferred between server and client.
+ * 
  * @author Ta-Yu Mar
- * @version 0.1 beta 2020-03-05
+ * @version 0.2 beta 2020-03-18
  */
 public class DataPackage implements Serializable {
 
     /**
-     *
+     * serialVersionUID
      */
     private static final long serialVersionUID = 1L;
 
@@ -21,6 +22,10 @@ public class DataPackage implements Serializable {
      * The Package Type List
      * 0: Sign In 
      * 1: Sign Up
+     * 2: Chat
+     * 3: --
+     * 4. Get online users
+     * 5. Notify online users.
      */
     public int type;
 
@@ -38,7 +43,7 @@ public class DataPackage implements Serializable {
     public String receiveUserName;
     public String message;
 
-    // Data
+    // online user list
     public List<OnlineUser> onlineUser= null;
 
     // online User
@@ -59,6 +64,12 @@ public class DataPackage implements Serializable {
 
     }
 
+    /**
+     * Put the user to online list.
+     * 
+     * @param userId   The input of userId.
+     * @param userName The input of userName.
+     */
     public void addOnlineUserInfo(int userId, String userName) {
         if(onlineUser == null) {
             onlineUser = new ArrayList<>();
@@ -78,8 +89,9 @@ public class DataPackage implements Serializable {
 
     /**
      * Via Json jar to build a package.
+     * 
      * @param pkgString The input package information.
-     * @return DataPackage
+     * @return DataPackage The DataPackage.
      */
     public static DataPackage fromString(String pkgString) {
         return JSON.parseObject(pkgString, DataPackage.class);

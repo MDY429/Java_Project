@@ -1,5 +1,6 @@
 /**
  * The user class define the user's relative information.
+ * 
  * @author Ta-Yu Mar
  * @version 0.1 beta 2020-03-05
  */
@@ -21,13 +22,14 @@ public class User {
      * Constructor for user.
      */
     public User() {
-        
+
     }
 
     /**
      * Constructor for user.
-     * @param userId    The user ID from database.
-     * @param userName  The user name.
+     * 
+     * @param userId   The user ID from database.
+     * @param userName The user name.
      */
     public User(int userId, String userName) {
         this.userId = userId;
@@ -36,6 +38,7 @@ public class User {
 
     /**
      * Get user password.
+     * 
      * @return Password string.
      */
     public String getPassword() {
@@ -44,6 +47,7 @@ public class User {
 
     /**
      * Set user password
+     * 
      * @param password The input of user password.
      */
     public void setPassword(String password) {
@@ -52,6 +56,7 @@ public class User {
 
     /**
      * Get the corresponding data handler.
+     * 
      * @return DataHandler
      */
     public DataHandler getDataHandler() {
@@ -60,6 +65,7 @@ public class User {
 
     /**
      * Set the data handler.
+     * 
      * @param dataHandler The input of dataHandler.
      */
     public void setDataHandler(DataHandler dataHandler) {
@@ -68,6 +74,7 @@ public class User {
 
     /**
      * Get user online status.
+     * 
      * @return UserStatus
      */
     public UserStatus getUserStatus() {
@@ -76,6 +83,7 @@ public class User {
 
     /**
      * Set user online or offline status
+     * 
      * @param status The input of UserStatus.
      */
     public void setUserStatus(UserStatus status) {
@@ -84,11 +92,12 @@ public class User {
 
     /**
      * Send the DataPackage to server.
+     * 
      * @param pkg The input of data package.
      * @return boolean
      */
     public boolean sendDataPackage(DataPackage pkg) {
-        return  dataHandler.sendDataHandle(pkg.toString());
+        return dataHandler.sendDataHandle(pkg.toString());
     }
 
 }

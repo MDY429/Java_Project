@@ -3,17 +3,21 @@ import java.util.Map;
 
 /**
  * The UserManager is middle role of client and server.
+ * 
  * @author Ta-Yu Mar
- * @version 0.1 beta 2020-03-05
+ * @version 0.2 beta 2020-03-18
  */
 public class UserManager {
 
     // Record online users.
     Map<Integer, User> onlineUsers = new HashMap<>();
-    Map<DataHandler, User> userHandler = new HashMap<>();
 
+    // Record handler and users.
+    Map<DataHandler, User> userHandler = new HashMap<>();
+    
+    // Database Manager.
     DatabaseManager db;
-    public UserManager(){
+    public UserManager() {
         this.db = new DatabaseManager();
     }
 
@@ -23,14 +27,14 @@ public class UserManager {
      * @param pkg         The input of data package.
      * @param dataHandler The input of corresponding data handler.
      */
-    public void userSignIn(DataPackage pkg, DataHandler dataHandler){
+    public void userSignIn(DataPackage pkg, DataHandler dataHandler) {
+
         boolean checkDatabase = db.add_Table();
-        if(checkDatabase){
+        if(checkDatabase) {
             System.out.println("Create new table.");
         }
-        if(!checkDatabase){
+        if(!checkDatabase) {
             int id = db.search_user(pkg.userName, pkg.userPw);
-            System.out.println("id:----"+id);
             if(id <= 0) {
                 System.out.println("Get User information fail.");
                 pkg.flag = 0;
@@ -74,8 +78,9 @@ public class UserManager {
      * @param dataHandler The input of corresponding data handler.
      */
     public void userSignUp(DataPackage pkg, DataHandler dataHandler) {
+
         boolean checkDatabase = db.add_Table();
-        if(checkDatabase){
+        if(checkDatabase) {
             System.out.println("Create new table.");
         }
         if(!checkDatabase && db.add_users(pkg.userName, pkg.userPw, pkg.email)) {
@@ -94,12 +99,14 @@ public class UserManager {
     }
 
     /**
-     * Server handle sending message to specific user. 
-     * @param pkg The input of data package.
+     * Server handle sending message to specific user.
+     * 
+     * @param pkg         The input of data package.
      * @param dataHandler The input of corresponding data handler.
      */
     public void sendPrivateChat(DataPackage pkg, DataHandler dataHandler) {
 
+        // Create a new package to put the chatting information.
         DataPackage sendMsg = new DataPackage();
         sendMsg.type = 2;
         sendMsg.userId = pkg.receiveUserId;
@@ -111,6 +118,7 @@ public class UserManager {
 
         User sendToUser = onlineUsers.get(pkg.receiveUserId);
         if(sendToUser == null) {
+            // If the person who is disconnected.
             pkg.flag = 2;
             dataHandler.sendDataHandle(pkg.toString());
         }
@@ -122,24 +130,28 @@ public class UserManager {
         else {
             System.out.println("Sending message fail.");
         }
-
     }
 
     /**
-     * Server handle. 
-     * @param pkg The input of data package.
+     * Server handle.
+     * 
+     * @param pkg         The input of data package.
      * @param dataHandler The input of corresponding data handler.
      */
     public void sendReadStatus(DataPackage pkg, DataHandler dataHandler) {
 
+        // TODO: Here could implement "user read" status.
     }
 
     /**
      * Server handle the user to get others user online status.
-     * @param pkg The input of data package.
+     * 
+     * @param pkg         The input of data package.
      * @param dataHandler The input of corresponding data handler.
      */
     public void getOnlineUsers(DataPackage pkg, DataHandler dataHandler) {
+
+        // Create a new package to collect online users.
         DataPackage getUsers = new DataPackage();
         getUsers.type = 4;
         onlineUsers.forEach((id, user) -> {
@@ -153,24 +165,31 @@ public class UserManager {
 
     /**
      * Server handle the user disconnect and notify other users.
+     * 
      * @param dataHandler The input of corresponding data handler.
      */
     public void userDisconnect(DataHandler dataHandler) {
+
         User user = userHandler.get(dataHandler);
         if(user != null) {
             user.setUserStatus(User.UserStatus.OFFLINE);
             onlineUsers.remove(user.userId);
             userHandler.remove(dataHandler);
         }
+
+        // Notify to other users, someone logout.
         notifyOthersUsers(null, dataHandler);
     }
 
     /**
      * Server handle inform others users, there a new user get online.
-     * @param pkg The input of data package.
+     * 
+     * @param pkg         The input of data package.
      * @param dataHandler The input of corresponding data handler.
      */
     public void notifyOthersUsers(DataPackage pkg, DataHandler dataHandler) {
+
+        // Create new package to notify every online user to update online list.
         DataPackage notify = new DataPackage();
         notify.type = 5;
         onlineUsers.forEach((id, user) -> {
@@ -178,6 +197,7 @@ public class UserManager {
                 notify.addOnlineUserInfo(user.userId, user.userName);
             }
         });
+
         onlineUsers.forEach((id, user) -> {
             if(pkg == null) {
                 user.sendDataPackage(notify);
@@ -188,6 +208,5 @@ public class UserManager {
         });
     
     }
-
     
 }
