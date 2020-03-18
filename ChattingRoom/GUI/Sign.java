@@ -25,6 +25,12 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
+/**
+ * First user interface to user and it will connect to server.
+ * 
+ * @author Ta-Yu Mar, Mingxi Li, Weijian Lin
+ * @version 0.2 Beta 2020-03-18
+ */
 public class Sign extends Application {
 
 	private Text title, subtitle;
@@ -36,28 +42,46 @@ public class Sign extends Application {
 	private Button registerButton, signInButton, forgetPasswordButton;
 	private BorderPane pane;
 	private Scene scene;
-	private ChatClient chatClient = new ChatClient();
-	private IntegerProperty integerProperty = new SimpleIntegerProperty(0);
-	private ListProperty<User> listProperty = new SimpleListProperty<>();
-	private StringProperty stringProperty = new SimpleStringProperty();
 
+	// Constructor variable.
+	private ChatClient chatClient;
+	private IntegerProperty integerProperty;
+	private ListProperty<User> listProperty;
+	private StringProperty stringProperty;
+
+	/**
+	 * Constructor for Sign.
+	 */
+	public Sign() {
+		this.chatClient = new ChatClient();
+		this.integerProperty = new SimpleIntegerProperty(0);
+		this.listProperty = new SimpleListProperty<User>();
+		this.stringProperty = new SimpleStringProperty();
+	}
+
+	/**
+	 * The start method.
+	 */
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
-		// title
+		// Title
 		title = new Text("WELCOME");
 		title.setFill(Color.BLACK);
 		title.setStyle("-fx-font-family:Verdana;-fx-font-size: 70;");
+
+		// Subtitle
 		subtitle = new Text("Chicago Chatroom");
 		subtitle.setFill(Color.BLACK);
 		subtitle.setStyle("-fx-font-family:Verdana;-fx-font-size: 18;");
 
+		// Main Box
 		titleBox = new VBox();
 		titleBox.getChildren().add(title);
 		titleBox.getChildren().add(subtitle);
 		titleBox.setAlignment(Pos.BASELINE_CENTER);
 
-		// label&text field
+		// Label & Text field
 		userNameLabel = new Label("USERNAME:");
 		userNameLabel.setPrefHeight(30);
 		userNameLabel.setPrefWidth(200);
@@ -93,7 +117,7 @@ public class Sign extends Application {
 		loginTextBox.setAlignment(Pos.CENTER);
 		loginTextBox.setSpacing(-40);
 
-		// button
+		// Register Button
 		registerButton = new Button();
 		registerButton.setText("REGISTER");
 		registerButton.setPrefHeight(30);
@@ -106,21 +130,22 @@ public class Sign extends Application {
 			}
 		});
 
+		// SignIn Button
 		signInButton = new Button("Sign IN");
 		signInButton.setPrefHeight(30);
 		signInButton.setPrefWidth(150);
 		
-		// action for sign in button
+		// Action for sign in button
 		signInButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent e) {
-				// System.out.println("Sign in succeed:");
-				// System.out.println("Username: " + userNameText.getText());
-				// System.out.println("Password: " + passwordText.getText());
 
 				// Before send to SignIn, set integerProperty be 0.
 				integerProperty.set(0);
+
 				// Send information to login account.
 				chatClient.sendSignIn(userNameText.getText(), passwordText.getText());
+				
+				// Create a thread to handle signIn process.
 				Thread thread = new Thread(new Runnable() {
 					int tryError = 15;
 
@@ -130,22 +155,23 @@ public class Sign extends Application {
 							@Override
 							public void run() {
 								tryError--;
-								if (integerProperty.getValue() == 1) {
+
+								// If integerProperty is 1 or tryError becomes 0 show login error.
+								if(integerProperty.getValue() == 1 || tryError == 0) {
 									Alert alert = new Alert(AlertType.ERROR);
 									alert.setTitle("Login Fail");
 									alert.setHeaderText("Login Fail");
-									String s = "Please check your username and password.";
-									alert.setContentText(s);
+									alert.setContentText("Please check your username and password.");
 									alert.showAndWait();
-									// System.out.println("Login FAIL");
 									userNameText.clear();
 									passwordText.clear();
 								}
-								if (integerProperty.getValue() == 2) {
+
+								// If integerProperty is 2, turn to another stage.
+								if(integerProperty.getValue() == 2) {
 									chatClient.findOnlineUsers();
-									popUpClientUI(primaryStage);
+									popUpOnlineListUI(primaryStage);
 									primaryStage.hide();
-									System.out.println("Login SUCCESS");
 								}
 							}
 						};
@@ -168,10 +194,12 @@ public class Sign extends Application {
 			}
 		});
 
+		// Forget Password Button
 		forgetPasswordButton = new Button("FORGET PASSWORD");
 		forgetPasswordButton.setPrefHeight(30);
 		forgetPasswordButton.setPrefWidth(150);
-		// action for forget button
+
+		// Action for forget button
 		forgetPasswordButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent e) {
 				popUpForgetUI();
@@ -179,6 +207,7 @@ public class Sign extends Application {
 			}
 		});
 
+		// Button's property.
 		buttonBox = new HBox();
 		buttonBox.getChildren().add(registerButton);
 		buttonBox.getChildren().add(signInButton);
@@ -198,19 +227,27 @@ public class Sign extends Application {
 		primaryStage.initStyle(StageStyle.DECORATED);
 		primaryStage.show();
 		
+		// Create a thread to connect server and collect the data from server.
 		Thread thread = new Thread(new Runnable() {
+
 			// Connect to Server.
 			boolean isConnected = chatClient.userConnectToServer(50000);
 			int tryError = 0;
 			Stage alertStage;
+
 			@Override
 			public void run() {
-				Runnable executeClient = new Runnable() {
+				
+				// If isConnected is true, run the corresponding process.
+				Runnable executeChatClient = new Runnable() {
 					@Override
 					public void run() {
+
 						// Get server feedback.
 						int ret = chatClient.runMain(integerProperty, listProperty, stringProperty);
+						
 						if (ret < -1) {
+							// Cannot connect server.
 							isConnected = false;
 						} else {
 							tryError = 0;
@@ -218,32 +255,34 @@ public class Sign extends Application {
                     }
 				};
 				
+				// If isConnected is false, try to reconnect to server for 10 times.
 				Runnable waitConnect = new Runnable() {
 					@Override
 					public void run() {
+
 						tryError++;
-						if(alertStage != null && alertStage.isShowing()){
+
+						if(alertStage != null && alertStage.isShowing()) {
 							alertStage.close();
 						}
+
 						// Draw Alert
 						Alert alert = new Alert(AlertType.ERROR);
 						alert.setTitle("Connection Fail");
+						alertStage = (Stage) alert.getDialogPane().getScene().getWindow();
+						alertStage.setAlwaysOnTop(true);
 						if(tryError <= 10) {
 							alert.setHeaderText("Check Your Internet");
-							String s = "Please check your Internet.\nSystem will try to reconnect.\n"
+							String s = "Please check your Internet.\nSystem will reconnect 10 times.\n"
 										+ "Re-Try: " + tryError;
 							alert.setContentText(s);
-							alertStage = (Stage) alert.getDialogPane().getScene().getWindow();
-							alertStage.setAlwaysOnTop(true);
 							alertStage.show();
 							isConnected = chatClient.userConnectToServer(50000);
 						}
 						else {
 							alert.setHeaderText("CLOSE APPLICATION");
-							String s = "Oops, Still cannot connect to Server.\nPlease try later.\nApplication close. Now";
+							String s = "Oops, Still cannot connect to Server.\nPlease try later.\nApplication will be closed.";
 							alert.setContentText(s);
-							alertStage = (Stage) alert.getDialogPane().getScene().getWindow();
-							alertStage.setAlwaysOnTop(true);
 							alertStage.showAndWait();
 							Platform.exit();
 						}
@@ -252,11 +291,12 @@ public class Sign extends Application {
 
                 while (true) {
                     try {
-						if(isConnected){
+						if(isConnected) {
 							Thread.sleep(20);
 						}
-						else{
+						else {
 							Thread.sleep(5000);
+							// If retry over 10 times will break.
 							if(tryError > 10) {
 								break;
 							}
@@ -267,7 +307,7 @@ public class Sign extends Application {
 					}
 
 					if(isConnected) {
-						Platform.runLater(executeClient);
+						Platform.runLater(executeChatClient);
 					}
 					else {
 						Platform.runLater(waitConnect);
@@ -283,13 +323,21 @@ public class Sign extends Application {
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent t) {
+				System.out.println("user close window");
 				Platform.exit();
 				System.exit(0);
 			}
 		});
 	}
 
+	/**
+	 * Pop up the register window.
+	 * 
+	 * @param primaryStage The main stage.
+	 * @param chatClient   The ChatClient data.
+	 */
 	private void popUpRegisterUI(Stage primaryStage, ChatClient chatClient) {
+
 		Register register=new Register(primaryStage, chatClient, integerProperty);
 		try {
 			register.start(new Stage());
@@ -298,7 +346,13 @@ public class Sign extends Application {
 		}
 	}
 	
-	private void popUpClientUI(Stage primaryStage) {
+	/**
+	 * Pop up the Online List.
+	 * 
+	 * @param primaryStage The main stage.
+	 */
+	private void popUpOnlineListUI(Stage primaryStage) {
+		
 		OnlineList onlineList = new OnlineList(primaryStage, chatClient, listProperty, integerProperty, stringProperty);
 		try {
 			onlineList.start(new Stage());

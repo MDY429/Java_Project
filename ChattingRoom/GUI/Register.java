@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.BorderPane;
@@ -17,59 +18,51 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
+/**
+ * The register user interface.
+ * 
+ * @author Ta-Yu Mar, Mingxi Li, Weijian Lin
+ * @version 0.2 Beta 2020-03-18
+ */
 public class Register extends Application {
 
-	private Label firstNameLabel, lastNameLabel, userNameLabel, passwordLabel, eMailLabel;
-	private TextField firstNameText, lastNameText, userNameText, passwordText, emailText;
+	private Label userNameLabel, passwordLabel, eMailLabel;
+	private TextField userNameText, emailText;
+	private PasswordField passwordText;
 	private VBox labelBox, textBox;
 	private HBox signUpTextBox, buttonBox;
 	private Button submitButton, cancelButton;
 	private BorderPane pane;
 	private Scene scene;
 
-	Stage primaryStage;
-	ChatClient chatClient;
+	// Constructor variable.
+	private Stage primaryStage;
+	private ChatClient chatClient;
 	private IntegerProperty integerProperty;
 
+	// Constructor for Register.
 	public Register(Stage primaryStage, ChatClient chatClient, IntegerProperty integerProperty) {
 		this.primaryStage = primaryStage;
 		this.chatClient = chatClient;
 		this.integerProperty = integerProperty;
 	}
 
+	/**
+	 * The start method.
+	 */
 	@Override
 	public void start(Stage stage) throws Exception {
-
-		// FirstName Label
-		firstNameLabel = new Label("First Name :");
-		firstNameLabel.setPrefHeight(30);
-		firstNameLabel.setPrefWidth(150);
-		// FirstName TextField
-		firstNameText = new TextField();
-		firstNameText.setPrefHeight(30);
-		firstNameText.setPrefWidth(200);
-		// FirstNameLabel for the FirstNameText
-		firstNameLabel.setLabelFor(firstNameText); // label is for this input box
-
-		// LastName Label
-		lastNameLabel = new Label("Last Name :");
-		lastNameLabel.setPrefHeight(30);
-		lastNameLabel.setPrefWidth(150);
-		// LastName TextField
-		lastNameText = new TextField();
-		lastNameText.setPrefHeight(30);
-		lastNameText.setPrefWidth(200);
-		// LastNameLabel for the LastNameText
-		lastNameLabel.setLabelFor(lastNameText);
 
 		// Username Label
 		userNameLabel = new Label("Username :");
 		userNameLabel.setPrefHeight(30);
 		userNameLabel.setPrefWidth(150);
+
 		// Username TextField
 		userNameText = new TextField();
 		userNameText.setPrefHeight(30);
 		userNameText.setPrefWidth(200);
+
 		// UserNameLabel for the UserNameText
 		userNameLabel.setLabelFor(userNameText);
 
@@ -77,8 +70,9 @@ public class Register extends Application {
 		passwordLabel = new Label("Password :");
 		passwordLabel.setPrefHeight(30);
 		passwordLabel.setPrefWidth(150);
+		
 		// Password TextField
-		passwordText = new TextField();
+		passwordText = new PasswordField();
 		passwordText.setPrefHeight(30);
 		passwordText.setPrefWidth(200);
 		// PasswordLabel for the PasswordText
@@ -96,8 +90,6 @@ public class Register extends Application {
 		eMailLabel.setLabelFor(emailText);
 
 		labelBox = new VBox();
-		labelBox.getChildren().add(firstNameLabel);
-		labelBox.getChildren().add(lastNameLabel);
 		labelBox.getChildren().add(userNameLabel);
 		labelBox.getChildren().add(passwordLabel);
 		labelBox.getChildren().add(eMailLabel);
@@ -105,8 +97,6 @@ public class Register extends Application {
 		labelBox.setSpacing(20);
 
 		textBox = new VBox();
-		textBox.getChildren().add(firstNameText);
-		textBox.getChildren().add(lastNameText);
 		textBox.getChildren().add(userNameText);
 		textBox.getChildren().add(passwordText);
 		textBox.getChildren().add(emailText);
@@ -119,26 +109,22 @@ public class Register extends Application {
 		signUpTextBox.setAlignment(Pos.CENTER);
 		signUpTextBox.setSpacing(-10);
 
-		// button registerButton
+		// Register Button
 		submitButton = new Button("Submit");
 		submitButton.setPrefHeight(30);
 		submitButton.setPrefWidth(150);
-		// action for submitButton
+
+		// Action for submit Button
 		submitButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent e) {
-				// TODO Need check function and update
-				System.out.println("Register succeed with the information bellow.");
-				System.out.println("First Name: " + firstNameText.getText());
-				System.out.println("Last Name: " + lastNameText.getText());
-				System.out.println("UserName: " + userNameText.getText());
-				System.out.println("password: " + passwordText.getText());
-				System.out.println("Email: " + emailText.getText());
-				System.out.println("Press register submit");
-
+				
 				// Before send to register, set integerProperty be 0.
 				integerProperty.set(0);
+
 				// Send information to register a new account.
 				chatClient.sendSignUp(userNameText.getText(), passwordText.getText(), emailText.getText());
+
+				// Create a thread to handle register process.
 				Thread thread = new Thread(new Runnable() {
 				int tryError = 15;
 
@@ -148,7 +134,9 @@ public class Register extends Application {
 							@Override
 							public void run() {
 								tryError--;
-								if (integerProperty.getValue() == 1) {
+
+								// If integerProperty is 1 or tryError becomes 0, show register error.
+								if (integerProperty.getValue() == 1 || tryError == 0) {
 									Alert alert = new Alert(AlertType.ERROR);
 									alert.setTitle("Register Fail");
 									alert.setHeaderText("Check Your Information");
@@ -158,23 +146,22 @@ public class Register extends Application {
 									alert.setContentText(s);
 									alert.showAndWait();
 									if(!alert.isShowing()){
-										popUpSignUI();
+										primaryStage.show();
 										stage.hide();
 									}
-									System.out.println("FAIL");
 								}
+
+								// If integerProperty is 2, show register success.
 								if (integerProperty.getValue() == 2) {
 									Alert alert = new Alert(AlertType.NONE);
 									alert.setTitle("Register Success");
 									alert.setHeaderText("Register Success");
-									String s = "Register Success!!!";
-									alert.setContentText(s);
+									alert.setContentText("Register Success!!!");
 									alert.showAndWait();
 									if(!alert.isShowing()){
-										popUpSignUI();
+										primaryStage.show();
 										stage.hide();
 									}
-									System.out.println("Register SUCCESS");
 								}
 							}
 						};
@@ -198,6 +185,7 @@ public class Register extends Application {
 			}
 		});
 
+		// If integerProperty becomes less than -1, the connection is broken.
 		integerProperty.addListener((observable, oldValue, newValue) -> {
 			if((int)newValue < -1) {
 				stage.close();
@@ -209,10 +197,11 @@ public class Register extends Application {
 		cancelButton = new Button("Cancel");
 		cancelButton.setPrefHeight(30);
 		cancelButton.setPrefWidth(150);
-		// action for cancel button
+
+		// Action for cancel button
 		cancelButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent e) {
-				popUpSignUI();
+				primaryStage.show();
 				stage.hide();
 			}
 		});
@@ -235,21 +224,14 @@ public class Register extends Application {
 		stage.initStyle(StageStyle.DECORATED);
 		stage.show();
 
+		// If user close the window, turn back to signIn window.
 		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent t) {
-				popUpSignUI();
+				primaryStage.show();
 			}
 		});
 
-	}
-
-	private void popUpSignUI() {
-		primaryStage.show();
-	}
-
-	public static void main(String[] args) {
-		launch(args);
 	}
 
 }
