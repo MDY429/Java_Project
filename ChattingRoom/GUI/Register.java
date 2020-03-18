@@ -1,13 +1,15 @@
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -27,12 +29,12 @@ public class Register extends Application {
 
 	Stage primaryStage;
 	ChatClient chatClient;
-	private BooleanProperty booleanProperty;
+	private IntegerProperty integerProperty;
 
-	public Register(Stage primaryStage, ChatClient chatClient, BooleanProperty booleanProperty) {
+	public Register(Stage primaryStage, ChatClient chatClient, IntegerProperty integerProperty) {
 		this.primaryStage = primaryStage;
 		this.chatClient = chatClient;
-		this.booleanProperty = booleanProperty;
+		this.integerProperty = integerProperty;
 	}
 
 	@Override
@@ -133,8 +135,8 @@ public class Register extends Application {
 				System.out.println("Email: " + emailText.getText());
 				System.out.println("Press register submit");
 
-				// Before send to register, set booleanProperty be false.
-				booleanProperty.set(false);
+				// Before send to register, set integerProperty be 0.
+				integerProperty.set(0);
 				// Send information to register a new account.
 				chatClient.sendSignUp(userNameText.getText(), passwordText.getText(), emailText.getText());
 				Thread thread = new Thread(new Runnable() {
@@ -146,24 +148,39 @@ public class Register extends Application {
 							@Override
 							public void run() {
 								tryError--;
-								if (tryError < 0) {
-									// TODO: show fail register window.
-									popUpSignUI();
-									stage.hide();
+								if (integerProperty.getValue() == 1) {
+									Alert alert = new Alert(AlertType.ERROR);
+									alert.setTitle("Register Fail");
+									alert.setHeaderText("Check Your Information");
+									String s = "Please check your username length longer than 6.\n"
+												+"Password longer than 6.\n"
+												+ "Check your Email is correct.";
+									alert.setContentText(s);
+									alert.showAndWait();
+									if(!alert.isShowing()){
+										popUpSignUI();
+										stage.hide();
+									}
 									System.out.println("FAIL");
 								}
-								if (booleanProperty.getValue()) {
-									// TODO: show success window.
-									popUpSignUI();
-									stage.hide();
+								if (integerProperty.getValue() == 2) {
+									Alert alert = new Alert(AlertType.NONE);
+									alert.setTitle("Register Success");
+									alert.setHeaderText("Register Success");
+									String s = "Register Success!!!";
+									alert.setContentText(s);
+									alert.showAndWait();
+									if(!alert.isShowing()){
+										popUpSignUI();
+										stage.hide();
+									}
 									System.out.println("Register SUCCESS");
 								}
 							}
 						};
 
 						while (tryError > 0) {
-							// System.out.println(tryError);
-							if (booleanProperty.getValue()) {
+							if (integerProperty.getValue() > 0) {
 								break;
 							}
 							try {

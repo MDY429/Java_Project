@@ -45,6 +45,7 @@ public class DataPackage implements Serializable {
     public class OnlineUser {
         public int userId;
         public String userName;
+        public OnlineUser() {}
         public OnlineUser(int userId, String userName) {
             this.userId = userId;
             this.userName = userName;

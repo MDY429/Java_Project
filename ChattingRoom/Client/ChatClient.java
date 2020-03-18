@@ -1,7 +1,11 @@
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * This is Client.
@@ -39,15 +43,15 @@ public class ChatClient {
 	/**
 	 * The result from database and broadcast to GUI.
 	 * @param pkg The input of data package
-	 * @param booleanProperty The input of BooleanProperty
+	 * @param IntegerProperty The input of IntegerProperty
 	 */
-	public void registerResult(DataPackage pkg, BooleanProperty booleanProperty) {
-		// Use BooleanProperty to do the broadcast.
+	public void registerResult(DataPackage pkg, IntegerProperty integerProperty) {
+		// Use IntegerProperty to do the broadcast.
 		if(pkg.flag == 1) {
-			booleanProperty.set(true);
+			integerProperty.set(2);
 		}
 		else {
-			booleanProperty.set(false);
+			integerProperty.set(1);
 		}
 	}
 
@@ -65,35 +69,53 @@ public class ChatClient {
 		user.sendDataPackage(pkg);
 	}
 
-	public void signInResult(DataPackage pkg, BooleanProperty booleanProperty) {
+	public void signInResult(DataPackage pkg, IntegerProperty integerProperty) {
+		user.userName = pkg.userName;
+		user.userId = pkg.userId;
+		
 		if(pkg.flag == 1) {
-			booleanProperty.set(true);
+			integerProperty.set(2);
 		}
 		else {
-			booleanProperty.set(false);
+			integerProperty.set(1);
 		}
+	}
+
+	public void sendMsg(int chatId, String chatName, String msg) {
+		DataPackage chatPkg = new DataPackage();
+		chatPkg.type = 2;
+		chatPkg.userId = user.userId;
+		chatPkg.userName = user.userName;
+		chatPkg.receiveUserId = chatId;
+		chatPkg.receiveUserName = chatName;
+		chatPkg.message = msg;
+
+		user.sendDataPackage(chatPkg);
 	}
 	
 	/**
 	 * 
 	 * @param pkg
 	 */
-	public void receiveMsg(DataPackage pkg) {
+	public void receiveMsg(DataPackage pkg, StringProperty stringProperty) {
 		// TODO: Waiting for GUI.
 		if(pkg.flag == 1){
 			System.out.println(pkg.userName + " SEND SUCCESS!!");
 		}
 		else{
 			System.out.println(pkg.userName + " got " + pkg.receiveUserName +" :"+pkg.message);
+			stringProperty.set(pkg.receiveUserName +": "+ pkg.message + "\n");
+			stringProperty.set("");
+			
 			// TODO: Show on GUI MSG Box.
 		}
 	}
 
 	public void findOnlineUsers() {
-		// TODO: GUI send pkg to all online user, who is comming.
+		System.out.println("find online users");
 		DataPackage pkg = new DataPackage();
 		pkg.type = 4;
-		dataHandler.sendDataHandle(pkg.toString());
+		user.sendDataPackage(pkg);
 	}
 
 	public void getOnlineUsers(DataPackage pkg){
@@ -108,27 +130,33 @@ public class ChatClient {
 		// notify Others user i am online to re-flash the online status.
 		DataPackage notifyOthers = new DataPackage();
 		notifyOthers.type = 5;
-		notifyOthers.userId = user.userId;
-		notifyOthers.userName = user.userName;
-		dataHandler.sendDataHandle(notifyOthers.toString());
-
-		// TODO: updating online user list.
+		user.sendDataPackage(notifyOthers);
 	}
 
-	public void updateOnlineUsers(DataPackage pkg) {
+	public void updateOnlineUsers(DataPackage pkg, ListProperty<User> listProperty) {
 		onlineUsersList.clear();
 		for(DataPackage.OnlineUser user : pkg.onlineUser) {
 			onlineUsersList.add(new User(user.userId, user.userName));
 		}
-		// TODO: GUI reload the onlineUsersList.
+
+		for(User s : onlineUsersList){
+			System.out.println(s.userId + ", " + s.userName);
+		}
+		
+		ObservableList<User> observableList = FXCollections.observableList(onlineUsersList);
+		listProperty.setValue(observableList);
+	}
+
+	public List<User> getOnlineList() {
+		return onlineUsersList;
 	}
 
 	/**
 	 * The Client receives the data from server.
-	 * @param booleanProperty The input of BooleanProperty
+	 * @param integerProperty The input of IntegerProperty
 	 * @return The integer of corresponding status.
 	 */
-	private int receiveFromServer(BooleanProperty booleanProperty) {
+	private int receiveFromServer(IntegerProperty integerProperty, ListProperty<User> listProperty, StringProperty stringProperty) {
 		if (!user.getDataHandler().isConnected()) {
 			// Try to reconnect the server.
 			userConnectToServer(PORT_NUMBER);
@@ -146,16 +174,16 @@ public class ChatClient {
 				switch (pkg.type) {
 					case 0:
 						System.out.println("[" + pkg.userName + "]: SIGN IN");
-						signInResult(pkg, booleanProperty);
+						signInResult(pkg, integerProperty);
 						break;
 					case 1:
 						System.out.println("[" + pkg.userName + "] SIGN UP new account: " + pkg.toString());
-						registerResult(pkg, booleanProperty);
+						registerResult(pkg, integerProperty);
 						break;
 					case 2:						
 						System.out.println("Send MSG");
 						System.out.println(pkg.toString());
-						receiveMsg(pkg);
+						receiveMsg(pkg, stringProperty);
 						break;
 					case 3:
 						System.out.println("Receive MSG");
@@ -166,7 +194,7 @@ public class ChatClient {
 						break;
 					case 5:
 						System.out.println("Update online users");
-						updateOnlineUsers(pkg);
+						updateOnlineUsers(pkg, listProperty);
 						break;
 
 					default:
@@ -197,10 +225,10 @@ public class ChatClient {
 
 	/**
 	 * Start to run.
-	 * @param booleanProperty The input of BooleanProperty.
+	 * @param integerProperty The input of IntegerProperty.
 	 */
-	public void runMain(BooleanProperty booleanProperty) {
-		int num = receiveFromServer(booleanProperty);
+	public void runMain(IntegerProperty integerProperty, ListProperty<User> listProperty, StringProperty stringProperty) {
+		int num = receiveFromServer(integerProperty, listProperty, stringProperty);
 		if (num <= 0) {
 			tryConnect++;
 			if(tryConnect > MAX_TRY_CONNECT){

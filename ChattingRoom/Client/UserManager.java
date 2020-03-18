@@ -178,7 +178,10 @@ public class UserManager {
             }
         });
         onlineUsers.forEach((id, user) -> {
-            if(pkg.userId != user.userId) {
+            if(pkg == null) {
+                user.sendDataPackage(notify);
+            }
+            else if(pkg.userId != user.userId) {
                 user.sendDataPackage(notify);
             }
         });

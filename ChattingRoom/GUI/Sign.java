@@ -1,15 +1,21 @@
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -30,8 +36,10 @@ public class Sign extends Application{
 	private Button registerButton, signInButton, forgetPasswordButton;
 	private BorderPane pane;
 	private Scene scene;
-	ChatClient chatClient = new ChatClient();
-	private BooleanProperty booleanProperty = new SimpleBooleanProperty(true);
+	private ChatClient chatClient = new ChatClient();
+	private IntegerProperty integerProperty = new SimpleIntegerProperty(0);
+	private ListProperty<User> listProperty = new SimpleListProperty<>();
+	private StringProperty stringProperty = new SimpleStringProperty();
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -110,8 +118,8 @@ public class Sign extends Application{
 				System.out.println("Username: "+userNameText.getText());
 				System.out.println("Password: "+passwordText.getText());
 
-				// Before send to SignIn, set booleanProperty be false.
-				booleanProperty.set(false);
+				// Before send to SignIn, set integerProperty be -1.
+				integerProperty.set(0);
 				// Send information to login account.
 				chatClient.sendSignIn(userNameText.getText(), passwordText.getText());
 				Thread thread = new Thread(new Runnable() {
@@ -123,13 +131,17 @@ public class Sign extends Application{
 								@Override
 								public void run() {
 									tryError--;
-									if (tryError < 0) {
-										// TODO: show fail Sign In window.
-										// popUpClientUI();
-										// primaryStage.hide();
+									if (integerProperty.getValue() == 1) {
+										Alert alert = new Alert(AlertType.ERROR);
+										alert.setTitle("Login Fail");
+										alert.setHeaderText("Login Fail");
+										String s = "Please check your username and password.";
+										alert.setContentText(s);
+										alert.showAndWait();
 										System.out.println("Login FAIL");
 									}
-									if (booleanProperty.getValue()) {
+									if (integerProperty.getValue() == 2) {
+										chatClient.findOnlineUsers();
 										popUpClientUI();
 										primaryStage.hide();
 										System.out.println("Login SUCCESS");
@@ -138,16 +150,16 @@ public class Sign extends Application{
 							};
 	
 							while (tryError > 0) {
-								if (booleanProperty.getValue()) {
+								if (integerProperty.getValue() > 0) {
 									break;
 								}
 								try {
 									Thread.sleep(300);
 								} catch (InterruptedException ex) {
-	
+									ex.printStackTrace();
 								}
 								Platform.runLater(signInProcess);
-							}						
+							}
 						}
 					});
 					thread.setDaemon(true);
@@ -195,7 +207,7 @@ public class Sign extends Application{
                     @Override
                     public void run() {
 						// Get server feedback.
-						chatClient.runMain(booleanProperty);
+						chatClient.runMain(integerProperty, listProperty, stringProperty);
                     }
                 };
 
@@ -204,7 +216,7 @@ public class Sign extends Application{
 						Thread.sleep(20);
 					}
 					catch (InterruptedException ex) {
-
+						ex.printStackTrace();
 					}
                     Platform.runLater(executeClient);
                 }
@@ -225,7 +237,7 @@ public class Sign extends Application{
 	}
 
 	private void popUpRegisterUI(Stage primaryStage, ChatClient chatClient) {
-		Register register=new Register(primaryStage, chatClient, booleanProperty);
+		Register register=new Register(primaryStage, chatClient, integerProperty);
 		try {
 			register.start(new Stage());
 		} catch (Exception e) {
@@ -235,11 +247,19 @@ public class Sign extends Application{
 	
 	private void popUpClientUI() {
 		// TODO Auto-generated method stub
-		Client client = new Client();
+		// Client client = new Client();
+		// try {
+		// 	client.start(new Stage());
+		// } catch (Exception e) {
+		// 	//TODO: handle exception
+		// 	e.printStackTrace();
+		// }
+		tempList a = new tempList(chatClient, listProperty, stringProperty);
 		try {
-			client.start(new Stage());
+			a.start(new Stage());
 		} catch (Exception e) {
 			//TODO: handle exception
+			e.printStackTrace();
 		}
 		
 	}
