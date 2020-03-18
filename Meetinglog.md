@@ -1,4 +1,12 @@
 # Meeting Log  
+**Date:** 2020/03/12  
+**Attendees:** Ta-Yu Mar, Weijian Lin, Yongnan Zhang, Yu Cheng  
+**Location:** CS Building - Downstair Lab.  
+**Time:** 15:00 - 16:30  
+**Topic:**  
+1. Merge code.  
+2. Checking GUI.  
+  
 **Date:** 2020/03/10  
 **Attendees:** All  
 **Location:** The Teaching and Learning Building  
