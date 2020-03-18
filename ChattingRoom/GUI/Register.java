@@ -198,6 +198,13 @@ public class Register extends Application {
 			}
 		});
 
+		integerProperty.addListener((observable, oldValue, newValue) -> {
+			if((int)newValue < -1) {
+				stage.close();
+				primaryStage.show();
+			}
+		});
+
 		// Cancel Button
 		cancelButton = new Button("Cancel");
 		cancelButton.setPrefHeight(30);

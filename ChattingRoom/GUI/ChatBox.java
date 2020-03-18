@@ -1,5 +1,6 @@
 
 import javafx.application.Application;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -13,16 +14,18 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-public class Client extends Application {
+public class ChatBox extends Application {
 
     ChatClient chatClient;
     User chatUser;
+    IntegerProperty integerProperty;
     StringProperty stringProperty;
     Stage stage;
 
-    public Client(ChatClient chatClient, User chatUser, StringProperty stringProperty) {
+    public ChatBox(ChatClient chatClient, User chatUser, IntegerProperty integerProperty, StringProperty stringProperty) {
         this.chatClient = chatClient;
         this.chatUser = chatUser;
+        this.integerProperty = integerProperty;
         this.stringProperty = stringProperty;
         this.stage = new Stage();
         try {
@@ -37,7 +40,7 @@ public class Client extends Application {
         return this.stage;
     }
 
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage stage) throws Exception {
 
 
         //title and textArea
@@ -101,10 +104,10 @@ public class Client extends Application {
         Scene scene = new Scene(pane, 600, 400);
 
 
-        primaryStage.setTitle("Chatting to " + chatUser.userName);
-        primaryStage.setScene(scene);
-        primaryStage.initStyle(StageStyle.DECORATED);
-        primaryStage.show();        
+        stage.setTitle("Chatting to " + chatUser.userName);
+        stage.setScene(scene);
+        stage.initStyle(StageStyle.DECORATED);
+        stage.show();        
         message.requestFocus();
 
         // send button action
@@ -116,14 +119,16 @@ public class Client extends Application {
             message.requestFocus();
         });
 
+        integerProperty.addListener((observable, oldValue, newValue) -> {
+			if((int)newValue < -1) {
+				stage.close();
+			}
+		});
+
     }
 
     public void sendMessage(String msg) {
         chatClient.sendMsg(chatUser.userId, chatUser.userName, msg);
-    }
-
-    public void receiveMessage() {
-        
     }
 
     public static void main(String[] args) {

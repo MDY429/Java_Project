@@ -2,6 +2,7 @@
 import java.util.HashMap;
 
 import javafx.application.Application;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
@@ -11,22 +12,26 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-public class tempList extends Application {
+public class OnlineList extends Application {
 
+    Stage primaryStage;
     ChatClient chatClient;
     ListProperty<User> listProperty;
+    IntegerProperty integerProperty;
     StringProperty stringProperty;
-    HashMap<User, Client> chatWindow = new HashMap<>();
+    HashMap<User, ChatBox> chatWindow = new HashMap<>();
 
-    public tempList(ChatClient chatClient, ListProperty<User> listProperty, StringProperty stringProperty) {
+    public OnlineList(Stage primaryStage, ChatClient chatClient, ListProperty<User> listProperty, IntegerProperty integerProperty, StringProperty stringProperty) {
+        this.primaryStage = primaryStage;
         this.chatClient = chatClient;
         this.listProperty = listProperty;
+        this.integerProperty = integerProperty;
         this.stringProperty = stringProperty;
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle(chatClient.user.userName);
+    public void start(Stage stage) throws Exception {
+        stage.setTitle(chatClient.user.userName);
 
         ListView<String> listView = new ListView<>();
 
@@ -57,13 +62,13 @@ public class tempList extends Application {
                     User chatUser = listProperty.get((int)o);
                     if(chatWindow.get(chatUser) == null) {
                         System.out.println("create new chatWindow");
-                        Client client = new Client(chatClient, chatUser, stringProperty);
-                        chatWindow.put(chatUser, client);
-                        Stage sss = client.getStage();
-                        sss.show();
+                        ChatBox chatBox = new ChatBox(chatClient, chatUser, integerProperty, stringProperty);
+                        chatWindow.put(chatUser, chatBox);
+                        Stage chatStage = chatBox.getStage();
+                        chatStage.show();
 
                         // User close window
-                        sss.showingProperty().addListener((observable, oldValue, newValue) -> {
+                        chatStage.showingProperty().addListener((observable, oldValue, newValue) -> {
                             if (oldValue == true && newValue == false) {
                                 System.out.println("The window close");
                                 chatWindow.remove(chatUser);
@@ -78,11 +83,50 @@ public class tempList extends Application {
 
         });
 
+        integerProperty.addListener((intObservable, intOldValue, intNewValue) -> {
+            // System.out.println(intOldValue + " ->> " + intNewValue);
+            if((int)intNewValue == -1){
+                return;
+            }
+
+            if((int)intNewValue < -1) {
+                stage.close();
+                primaryStage.show();
+			}
+            
+            for(User chatUser: listProperty) {
+                if(chatUser.userId == (int)intNewValue) {
+                    
+                    if(chatUser != null) {
+                        if(chatWindow.get(chatUser) == null) {
+                            System.out.println("create new chatWindow");
+                            ChatBox chatBox = new ChatBox(chatClient, chatUser, integerProperty, stringProperty);
+                            chatWindow.put(chatUser, chatBox);
+                            Stage chatStage = chatBox.getStage();
+                            chatStage.show();                            
+        
+                            // User close window
+                            chatStage.showingProperty().addListener((observable, oldValue, newValue) -> {
+                                if (oldValue == true && newValue == false) {
+                                    System.out.println("The window close");
+                                    chatWindow.remove(chatUser);
+                                }
+                            });
+                        }
+                        else {
+                            System.out.println("The chatWindow already exist.");
+                        }
+                    }
+                    break;
+                }
+            }            
+        });
+
         VBox vBox = new VBox(listView);
 
         Scene scene = new Scene(vBox, 250, 300);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        stage.setScene(scene);
+        stage.show();
 
     }
 

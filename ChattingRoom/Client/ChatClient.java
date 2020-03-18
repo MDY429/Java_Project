@@ -21,9 +21,6 @@ public class ChatClient {
 	List<User> onlineUsersList = new ArrayList<>();
 
 	DataHandler dataHandler = null;
-	private static final int PORT_NUMBER = 50000;
-	private static final int MAX_TRY_CONNECT = 20;
-	private static int tryConnect = 0;
 
 	/**
 	 * Client ask for registering new account.
@@ -97,17 +94,21 @@ public class ChatClient {
 	 * 
 	 * @param pkg
 	 */
-	public void receiveMsg(DataPackage pkg, StringProperty stringProperty) {
-		// TODO: Waiting for GUI.
-		if(pkg.flag == 1){
+	public void receiveMsg(DataPackage pkg, StringProperty stringProperty, IntegerProperty integerProperty) {
+		if(pkg.flag == 1) {
 			System.out.println(pkg.userName + " SEND SUCCESS!!");
 		}
-		else{
+		else if(pkg.flag == 2) {
+			System.out.println(pkg.userName + " SEND FAIL!!");
+			stringProperty.set(pkg.receiveUserName +": I am not ONLINE.\n");
+			stringProperty.set("");
+		}
+		else {			
+			integerProperty.set(-1);
+			integerProperty.set(pkg.receiveUserId);
 			System.out.println(pkg.userName + " got " + pkg.receiveUserName +" :"+pkg.message);
 			stringProperty.set(pkg.receiveUserName +": "+ pkg.message + "\n");
 			stringProperty.set("");
-			
-			// TODO: Show on GUI MSG Box.
 		}
 	}
 
@@ -158,16 +159,12 @@ public class ChatClient {
 	 */
 	private int receiveFromServer(IntegerProperty integerProperty, ListProperty<User> listProperty, StringProperty stringProperty) {
 		if (!user.getDataHandler().isConnected()) {
-			// Try to reconnect the server.
-			userConnectToServer(PORT_NUMBER);
 			System.out.println("Cannot Connect Server");
 			return -2;
 		}
 
 		List<DataPackage> packages = user.getDataHandler().receiveHandle();
 		if (packages != null) {
-			// Receive from server, set tryConnect to 0.
-			tryConnect = 0;
 			// System.out.printf("got %d packages\n", packages.size());
 			for (DataPackage pkg : packages) {
 				// System.out.println("Process pkg: " + pkg.toString());
@@ -183,7 +180,7 @@ public class ChatClient {
 					case 2:						
 						System.out.println("Send MSG");
 						System.out.println(pkg.toString());
-						receiveMsg(pkg, stringProperty);
+						receiveMsg(pkg, stringProperty, integerProperty);
 						break;
 					case 3:
 						System.out.println("Receive MSG");
@@ -204,9 +201,7 @@ public class ChatClient {
 			}
 		} else {
 			System.out.println("got null packages, connection may have been broken");
-			// Try to reconnect the server.
-			userConnectToServer(PORT_NUMBER);
-			return -1;
+			return -3;
 		}
 		return packages.size();
 	}
@@ -226,21 +221,16 @@ public class ChatClient {
 	/**
 	 * Start to run.
 	 * @param integerProperty The input of IntegerProperty.
+	 * @param listProperty The input of listProperty.
+	 * @param stringProperty The input of stringProperty.
+	 * @return The package size from server.
 	 */
-	public void runMain(IntegerProperty integerProperty, ListProperty<User> listProperty, StringProperty stringProperty) {
+	public int runMain(IntegerProperty integerProperty, ListProperty<User> listProperty, StringProperty stringProperty) {
 		int num = receiveFromServer(integerProperty, listProperty, stringProperty);
-		if (num <= 0) {
-			tryConnect++;
-			if(tryConnect > MAX_TRY_CONNECT){
-				System.err.println("Cannot connect server, close the application.");
-				System.exit(0);
-			}
+		if (num < 0) {
+			integerProperty.set(num);
 		}
+		return num;
     }
-
-	// public static void main(String[] args) {
-	// 	ChatClient runClient = new ChatClient();
-	// 	runClient.runMain();
-	// }
 
 }

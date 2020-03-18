@@ -111,7 +111,8 @@ public class UserManager {
 
         User sendToUser = onlineUsers.get(pkg.receiveUserId);
         if(sendToUser == null) {
-            // TODO: offline message.
+            pkg.flag = 2;
+            dataHandler.sendDataHandle(pkg.toString());
         }
         if(sendToUser != null && sendToUser.sendDataPackage(sendMsg)) {
             pkg.flag = 1;
