@@ -7,8 +7,8 @@ import java.sql.*;
  **/
 
 public class DatabaseManager {
-    Database_Conntect dc=new Database_Conntect();
-    // Database_Conntect ds=new Database_Conntect();
+    Database_Connect dc=new Database_Connect();
+    // Database_Connect ds=new Database_Connect();
 
     private Connection connect=null;
     //test whether table exist
@@ -16,7 +16,7 @@ public class DatabaseManager {
         if(!table_Exist()){
             add_Table();
         }
-        connect=dc.DB_conntect();
+        connect=dc.DB_connect();
     }
 
 
@@ -243,10 +243,34 @@ public class DatabaseManager {
         }
     }
 
+    //change passwords when user forget the passwords
+    public boolean change_passwords(Integer id,String passwords){
+        if(connect==null){
+            return false;
+        }
+        if(passwords.length()<5){
+            System.out.println("this passwords are too short");
+            return false;
+        }
+        try {
+            PreparedStatement change_passowrds = connect.prepareStatement("UPDATE UserList set password=? where id=?");
+            change_passowrds.setString(1, passwords);
+            change_passowrds.setInt(2, id);
+            int i = change_passowrds.executeUpdate();
+            System.out.println("change passwords successfully");
+            return i>0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("change passwords unsuccessfully");
+            return false;
+        }
+    }
+
 
     public static void main(String[] args) {
         DatabaseManager db = new DatabaseManager();
-        db.add_friends(1,"aaaa",-1,"bbbb");
+        db.change_passwords(1,"bbbbbbb");
+    //    db.add_friends(1,"aaaa",-1,"bbbb");
      //   db.add_users("bbbbbb","asasda","asdasd@");
 //        System.out.println(db.search_user_addfriends("bbbbbb"));
        // db.add_users("ifu","asd","asdasd");
