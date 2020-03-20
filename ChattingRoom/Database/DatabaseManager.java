@@ -1,7 +1,7 @@
 import java.sql.*;
 
 /**
- * @author ynz
+ * @author ynz ,Ta-Yu Mar
  * create at 2020-03-08 23:34
  * @description:this is the class for
  **/
@@ -50,25 +50,32 @@ public class DatabaseManager {
     }
 
     //insert user
-    public  boolean add_users(String name,String password,String email) {
+    /**
+     *  Insert User.
+     * @param name
+     * @param password
+     * @param email
+     * @return -1: Cannot connect DB, -2: Wrong syntax, -3: DB exception, other:success.
+     */
+    public int add_users(String name,String password,String email) {
         if (connect == null) {
-            return false;
+            return -1;
         }
         if (password.indexOf(" ") != -1) {
             System.out.println("passwords are not allowed to have blank");
-            return false;
+            return -2;
         }
         if (password.length() < 5 || name.length() < 5) {
             System.out.println("you should set longer passwords or username");
-           return false;
+           return -2;
         }
         if (!isValidword(name)) {
             System.out.println("illegal usename");
-            return false;
+            return -2;
         }
         if (!email.contains("@")) {
             System.out.println("illegal email format ");
-            return false;
+            return -2;
         }
             else{
             try {
@@ -78,10 +85,14 @@ public class DatabaseManager {
                 insert_user.setString(3, email);
                 int num = insert_user.executeUpdate();
                 System.out.println("add successfully");
-                return num > 0;
+                return num;
             } catch (SQLException e) {
                 System.out.println("mistake in adding user");
-                return false;
+                if(e.getSQLState().toString().equals("23505")){
+                    // Duplicate status code.
+                    return -3;
+                }
+                return -1;
             }
         }
     }

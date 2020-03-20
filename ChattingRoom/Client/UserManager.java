@@ -80,22 +80,26 @@ public class UserManager {
     public void userSignUp(DataPackage pkg, DataHandler dataHandler) {
 
         boolean checkDatabase = db.add_Table();
+        int checkAddUser = db.add_users(pkg.userName, pkg.userPw, pkg.email);
         if(checkDatabase) {
             System.out.println("Create new table.");
         }
-        if(!checkDatabase && db.add_users(pkg.userName, pkg.userPw, pkg.email)) {
-            pkg.flag = 1;
-            
-            dataHandler.sendDataHandle(pkg.toString());
+        if(!checkDatabase && checkAddUser > 0) {
+            pkg.flag = 1;            
         }
-        else {
-            // Send back sign up fail.
-            System.out.println("User sign up Error!!!");
-            pkg.flag = 0;
-            
-            dataHandler.sendDataHandle(pkg.toString());
-            return;
+        else if(!checkDatabase && checkAddUser == -1) {
+            // Cannot connect DB.
+            pkg.flag = 2;
         }
+        else if(!checkDatabase && checkAddUser == -2) {
+            // Error syntax.
+            pkg.flag = 3;
+        }
+        else if(!checkDatabase && checkAddUser == -3) {
+            // DB exception (duplicate)
+            pkg.flag = 4; 
+        }
+        dataHandler.sendDataHandle(pkg.toString());
     }
 
     /**
