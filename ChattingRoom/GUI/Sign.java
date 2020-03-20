@@ -1,3 +1,5 @@
+import java.util.Optional;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
@@ -12,10 +14,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -155,7 +159,8 @@ public class Sign extends Application {
 							@Override
 							public void run() {
 								tryError--;
-
+								
+								// Do the process
 								signInProcess(integerProperty.get(), primaryStage, tryError);
 							}
 						};
@@ -338,6 +343,8 @@ public class Sign extends Application {
 	 * @param tryError     The try error times.
 	 */
 	public void signInProcess(int type, Stage primaryStage, int tryError) {
+
+		// Type 1, sign in fail.
 		if(type == 1 || tryError == 0) {
 			Alert alert = new Alert(AlertType.ERROR);
 			alert.setTitle("Login Fail");
@@ -348,13 +355,41 @@ public class Sign extends Application {
 			passwordText.clear();
 		}
 
-		// If integerProperty is 2, turn to another stage.
+		// Type 2, login success, turn to another stage.
 		if(type == 2) {
 			chatClient.findOnlineUsers();
 			popUpOnlineListUI(primaryStage);
 			primaryStage.hide();
 		}
 
+		// Type 3, duplicated login, show alert.
+		if(type == 3) {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Login Fail");
+			alert.setHeaderText("Login Fail");
+			String str = "Your status is online.\n"
+					+ "If is you, press Yes system will logout previous one, and please logIn again.\n"
+					+ "If not, system will logout account and you can change the password.\n";
+			alert.setContentText(str);
+
+			ButtonType buttonYes = new ButtonType("Yes,is me");
+			ButtonType buttonChange = new ButtonType("Change Password");
+			ButtonType buttonNo = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+			alert.getButtonTypes().setAll(buttonYes, buttonChange, buttonNo);
+			Optional<ButtonType> result = alert.showAndWait();
+			if(result.get() == buttonYes) {
+				chatClient.forceLogoutProcess();
+			}
+			else if(result.get() == buttonChange) {
+				popUpForgetUI();
+				chatClient.forceLogoutProcess();
+			}
+			else if(result.get() == buttonNo) {
+				System.out.println("do nothing");
+			}
+			userNameText.clear();
+			passwordText.clear();
+		}
 	}
 	
 	/**

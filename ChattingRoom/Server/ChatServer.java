@@ -139,6 +139,7 @@ public class ChatServer {
      * 3. --
      * 4. Get online users
      * 5. Notify online users.
+     * 6. Force logout.
      * 
      * @param dataPkgs The DataPackage.
      * @param handler  The DataHandler.
@@ -171,6 +172,10 @@ public class ChatServer {
                 case 5:
                     System.out.println("[Server]Notify other users." + pkg.type);
                     userManager.notifyOthersUsers(pkg, handler);
+                    break;
+                case 6:
+                    System.out.println("[Server]Force logout." + pkg.type);
+                    userManager.forceLogout(pkg, handler);
                     break;
                 
                 default:

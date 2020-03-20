@@ -35,6 +35,7 @@ public class ChatClient {
 		// Create a new package to pack the register information.
 		DataPackage pkg = new DataPackage();
 		pkg.type = 1;
+		pkg.flag = 0;
 		pkg.userName = userName;
 		pkg.userPw = userPw;
 		pkg.email = email;
@@ -52,7 +53,20 @@ public class ChatClient {
 
 		// Use IntegerProperty to do the broadcast.
 		if(pkg.flag == 1) {
+			// Create success.
 			integerProperty.set(2);
+		}
+		else if(pkg.flag == 2) {
+			// Cannot connect DB.
+			integerProperty.set(3);
+		}
+		else if(pkg.flag == 3) {
+			// Wrong syntax.
+			integerProperty.set(4);
+		}
+		else if(pkg.flag == 4) {
+			// DB exp (Duplicate).
+			integerProperty.set(5);
 		}
 		else {
 			integerProperty.set(1);
@@ -90,9 +104,15 @@ public class ChatClient {
 		
 		// Use IntegerProperty to do the broadcast.
 		if(pkg.flag == 1) {
+			// Login success.
 			integerProperty.set(2);
 		}
+		else if(pkg.flag == 2) {
+			// Login duplicate.
+			integerProperty.set(3);
+		}
 		else {
+			// Login fail.
 			integerProperty.set(1);
 		}
 	}
@@ -205,6 +225,26 @@ public class ChatClient {
 	}
 
 	/**
+	 * Force logout duplicated login account.
+	 */
+	public void forceLogoutProcess() {
+
+		// Create a new package to notify duplicated account to exit app.
+		DataPackage pkg = new DataPackage();
+		pkg.type = 6;
+		pkg.userId = user.userId;
+		pkg.userName = user.userName;
+		user.sendDataPackage(pkg);
+	}
+
+	/**
+	 * Execute exit.
+	 */
+	public void forceExit() {
+		System.exit(0);
+	}
+
+	/**
 	 * The Client receives the data from server.
 	 * 0. Sign In
      * 1. Sign Up
@@ -212,6 +252,7 @@ public class ChatClient {
      * 3. --
      * 4. Get online users
      * 5. Notify online users.
+	 * 6. Force LogOut.
 	 * 
 	 * @param integerProperty The input of IntegerProperty
 	 * @param listProperty    The input of ListProperty
@@ -256,6 +297,10 @@ public class ChatClient {
 					case 5:
 						System.out.println("Update online users");
 						updateOnlineUsers(pkg, listProperty);
+						break;
+					case 6:
+						System.out.println("Force Logout");
+						forceExit();
 						break;
 
 					default:

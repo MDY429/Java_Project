@@ -42,6 +42,14 @@ public class UserManager {
                 return;
             }
 
+            if(onlineUsers.get(id) != null) {
+                // System.out.println("Login Duplicate");
+                pkg.flag = 2;
+                pkg.userId = id;
+                dataHandler.sendDataHandle(pkg.toString());
+                return;
+            }
+
             User user = new User(id, pkg.userName);
             user.setPassword(pkg.userPw);
 
@@ -211,6 +219,33 @@ public class UserManager {
             }
         });
     
+    }
+
+    /**
+     * Server handle duplicate login, force the account exit. And notify other
+     * users.
+     * 
+     * @param pkg         The input of data package.
+     * @param dataHandler The input of corresponding data handler.
+     */
+    public void forceLogout(DataPackage pkg, DataHandler dataHandler) {
+
+        User user = onlineUsers.get(pkg.userId);
+        DataHandler userDataHandler = user.getDataHandler();
+
+        if(user != null) {
+            user.setUserStatus(User.UserStatus.OFFLINE);
+            onlineUsers.remove(user.userId);
+            userHandler.remove(userDataHandler);
+        }
+
+        // Create a new package to force logout.
+        DataPackage kickUser = new DataPackage();
+        kickUser.type = 6;
+        userDataHandler.sendDataHandle(kickUser.toString());
+
+        // Notify to other users, someone logout.
+        notifyOthersUsers(null, userDataHandler);
     }
     
 }
