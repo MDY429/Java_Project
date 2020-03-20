@@ -134,35 +134,8 @@ public class Register extends Application {
 							@Override
 							public void run() {
 								tryError--;
-
-								// If integerProperty is 1 or tryError becomes 0, show register error.
-								if (integerProperty.getValue() == 1 || tryError == 0) {
-									Alert alert = new Alert(AlertType.ERROR);
-									alert.setTitle("Register Fail");
-									alert.setHeaderText("Check Your Information");
-									String s = "Please check your username length longer than 6.\n"
-												+"Password longer than 6.\n"
-												+ "Check your Email is correct.";
-									alert.setContentText(s);
-									alert.showAndWait();
-									if(!alert.isShowing()){
-										primaryStage.show();
-										stage.hide();
-									}
-								}
-
-								// If integerProperty is 2, show register success.
-								if (integerProperty.getValue() == 2) {
-									Alert alert = new Alert(AlertType.NONE);
-									alert.setTitle("Register Success");
-									alert.setHeaderText("Register Success");
-									alert.setContentText("Register Success!!!");
-									alert.showAndWait();
-									if(!alert.isShowing()){
-										primaryStage.show();
-										stage.hide();
-									}
-								}
+								// Show alert.
+								drawAlert(integerProperty.getValue(), stage, tryError);
 							}
 						};
 
@@ -232,6 +205,73 @@ public class Register extends Application {
 			}
 		});
 
+	}
+
+	/**
+	 * Draw alert.
+	 * 
+	 * @param type  Type of alert.
+	 * @param stage Stage.
+	 * @param tryError Try Error number.
+	 */
+	public void drawAlert(int type, Stage stage, int tryError) {
+		Alert alert;
+		String str;
+		if(tryError > 0) {
+			if(type == 2) {
+				alert = new Alert(AlertType.CONFIRMATION);
+				alert.setTitle("Register Success");
+				alert.setHeaderText("Register Success");
+				str = "Register Success!!!";
+			}
+			else if(type == 3) {
+				alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Register Fail");
+				alert.setHeaderText("Cannot Connect DB");
+				str = "Cannot Connect DataBase.\nPlease try later.";
+			}
+			else if(type == 4) {
+				alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Register Fail");
+				alert.setHeaderText("Check Your Information");
+				str = "Please check your username length longer than 6.\n"
+							+"Password longer than 6.\n"
+							+ "Check your Email is correct.";
+			}
+			else if(type == 5) {
+				alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Register Fail");
+				alert.setHeaderText("Duplicate User Name");
+				str = "The User Name is duplicate!\nPlease try another.";
+			}
+			else {
+				alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Register Fail");
+				alert.setHeaderText("Unknown Error");
+				str = "The bad happen.\nPlease try later.";
+			}
+
+			alert.setContentText(str);
+			alert.showAndWait();
+			if(!alert.isShowing()){
+				primaryStage.show();
+				stage.hide();
+			}
+		}
+		else {
+			// tryError <= 0
+			alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Register Fail");
+			alert.setHeaderText("Unknown Error");
+			str = "The bad happen.\nPlease try later.";
+			alert.setContentText(str);
+			alert.showAndWait();
+			if(!alert.isShowing()){
+				primaryStage.show();
+				stage.hide();
+			}
+		}
+		
 	}
 
 }

@@ -156,23 +156,7 @@ public class Sign extends Application {
 							public void run() {
 								tryError--;
 
-								// If integerProperty is 1 or tryError becomes 0 show login error.
-								if(integerProperty.getValue() == 1 || tryError == 0) {
-									Alert alert = new Alert(AlertType.ERROR);
-									alert.setTitle("Login Fail");
-									alert.setHeaderText("Login Fail");
-									alert.setContentText("Please check your username and password.");
-									alert.showAndWait();
-									userNameText.clear();
-									passwordText.clear();
-								}
-
-								// If integerProperty is 2, turn to another stage.
-								if(integerProperty.getValue() == 2) {
-									chatClient.findOnlineUsers();
-									popUpOnlineListUI(primaryStage);
-									primaryStage.hide();
-								}
+								signInProcess(integerProperty.get(), primaryStage, tryError);
 							}
 						};
 
@@ -344,6 +328,33 @@ public class Sign extends Application {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * The sign In process.
+	 * 
+	 * @param type         The different to do the signIn process.
+	 * @param primaryStage Stage.
+	 * @param tryError     The try error times.
+	 */
+	public void signInProcess(int type, Stage primaryStage, int tryError) {
+		if(type == 1 || tryError == 0) {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Login Fail");
+			alert.setHeaderText("Login Fail");
+			alert.setContentText("Please check your username and password.");
+			alert.showAndWait();
+			userNameText.clear();
+			passwordText.clear();
+		}
+
+		// If integerProperty is 2, turn to another stage.
+		if(type == 2) {
+			chatClient.findOnlineUsers();
+			popUpOnlineListUI(primaryStage);
+			primaryStage.hide();
+		}
+
 	}
 	
 	/**
