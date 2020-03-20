@@ -1,91 +1,85 @@
-
-import javafx.application.Application;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 /**
  * The chat interface.
  * 
- * @author Ta-Yu Mar, Weijian Lin
- * @version 0.2 Beta 2020-03-18
+ * @author Ta-Yu Mar
+ * @version 0.2 Beta 2020-03-20
  */
-public class ChatBox extends Application {
+public class ChatSlice extends Pane {
+
+    TextArea textArea;
+    TextField textField;
+    Button  sendButton;
+    BorderPane chatBox;
+    ScrollPane sp;
 
     // Constructor variable
     ChatClient chatClient;
     User chatUser;
     IntegerProperty integerProperty;
     StringProperty stringProperty;
-    Stage stage;
 
-    /**
-     * Constructor for ChatBox
+   /**
+     * Constructor for ChatSlice
      * 
      * @param chatClient      The input to chatClient data.
      * @param chatUser        The User you want to chat.
      * @param integerProperty The input of interProperty.
      * @param stringProperty  The input of stringProperty.
      */
-    public ChatBox(ChatClient chatClient, User chatUser, IntegerProperty integerProperty, StringProperty stringProperty) {
+    public ChatSlice(ChatClient chatClient, User chatUser, IntegerProperty integerProperty, StringProperty stringProperty) {
         this.chatClient = chatClient;
         this.chatUser = chatUser;
         this.integerProperty = integerProperty;
         this.stringProperty = stringProperty;
-        this.stage = new Stage();
-        try {
-            start(this.stage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.chatBox = new BorderPane();
+        chatSlice();
     }
 
     /**
-     * Return chat box stage.
-     * @return Stage.
+     * Return chat box pane.
+     * 
+     * @return BorderPane
      */
-    public Stage getStage() {
-        return this.stage;
+    public BorderPane getChatBox() {
+        return this.chatBox;
     }
 
     /**
-     * Start method.
+     * Draw the pane.
      */
-    public void start(Stage stage) throws Exception {
+    public void chatSlice(){
 
-        // Title
-        Text title = new Text(this.chatUser.userName);
-        title.setFill(Color.BLACK);
-        title.setStyle("-fx-font-family:Verdana;-fx-font-size: 20;");
-
-        // TextArea
-        TextArea textArea = new TextArea();
+        textArea = new TextArea();
+        textArea.setPrefHeight(400);
         // Disable edit function.
         textArea.setEditable(false);
         // Listen for coming string.
         stringProperty.addListener(event -> {
             String str = stringProperty.getValue();
-            if(str.length() > 0 && chatUser.userName.equals(str.subSequence(0, chatUser.userName.length()))){
+            if(str.length() > 0 && chatUser.userName.equals(str.subSequence(0, chatUser.userName.length()))) {
                 textArea.appendText(str);
             }
         });
 
         VBox titleBox = new VBox();
-        titleBox.getChildren().addAll(title, textArea);
+        titleBox.getChildren().addAll(textArea);
         titleBox.setAlignment(Pos.CENTER);
 
         // ScrollPane
-        ScrollPane sp = new ScrollPane();
+        sp = new ScrollPane();
         sp.setFitToWidth(true);
         sp.setFitToHeight(true);
         sp.setContent(textArea);
@@ -106,7 +100,7 @@ public class ChatBox extends Application {
         });
 
         // Send Button.
-        Button sendButton = new Button("Send");
+        sendButton = new Button("Send");
         sendButton.setPrefHeight(30);
         sendButton.setPrefWidth(70);
         
@@ -124,31 +118,15 @@ public class ChatBox extends Application {
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setPrefHeight(50);
 
-        BorderPane pane = new BorderPane();
-        pane.setTop(titleBox);
-        pane.setBottom(buttonBox);
-        Scene scene = new Scene(pane, 600, 400);        
+        chatBox.setTop(titleBox);
+        chatBox.setBottom(buttonBox);
 
-        stage.setTitle(chatClient.user.userName + " chatting to " + chatUser.userName);
-        stage.setScene(scene);
-        stage.initStyle(StageStyle.DECORATED);
-        stage.setResizable(false);
-        stage.show();
-        
-        // Set text filed focus.
-        message.requestFocus();
-
-        // Listen for server connection.
-        integerProperty.addListener((observable, oldValue, newValue) -> {
-			if((int)newValue < -1) {
-				stage.close();
-			}
-		});
-
+        // return chatBox;
     }
 
     /**
      * After pressing send button or Enter, send message to chat user.
+     * 
      * @param msg The input of message string.
      */
     public void sendMessage(String msg) {
